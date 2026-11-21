@@ -1,42 +1,57 @@
 ---
+// Card de projeto na home. Normalmente leva para a página do projeto (/projects/<id>/).
+// Projetos "diretos" (direct: true, como o Toki) abrem o próprio app numa nova aba,
+// ou o repositório enquanto o app não estiver no ar.
 import type { Project } from '../data/site';
-import { PROVISIONAL } from '../data/site';
+import { withBase } from '../utils/url';
 
 interface Props {
   project: Project;
 }
 const { project } = Astro.props;
-const Tag = project.url ? 'a' : 'div';
+
+const external = project.direct ? (project.appUrl ?? project.repo) : null;
+const href = external ?? withBase(`/projects/${project.id}/`);
+const action = !project.direct
+  ? 'View project'
+  : project.appUrl
+    ? `Open ${project.name}`
+    : 'View on GitHub';
 ---
 
-<Tag
+<a
   class="card"
-  href={project.url ?? undefined}
-  target={project.url ? '_blank' : undefined}
-  rel={project.url ? 'noopener' : undefined}
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
 >
   <div class="preview">
     {project.preview ? (
       <img
-        src={project.preview}
+        src={withBase(project.preview)}
         alt={`${project.name} preview`}
         width="640"
         height="400"
         loading="lazy"
       />
     ) : (
-      <span class="placeholder">Preview pending</span>
+      <span class="placeholder" aria-hidden="true">
+        {project.name}
+      </span>
     )}
   </div>
   <div class="body">
+    {project.kind && <span class="kind">{project.kind}</span>}
     <h3>{project.name}</h3>
-    <p>
-      {project.description ?? 'Description pending.'}
-      {!project.description && <span class="provisional">{PROVISIONAL}</span>}
-    </p>
-    <span class="link">{project.url ? 'Open project ↗' : 'Public link pending'}</span>
+    <p>{project.description ?? 'Details soon.'}</p>
+    <span class="more">
+      {action}
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        {external ? <path d="M7 17 17 7M8 7h9v9" /> : <path d="M5 12h14M13 6l6 6-6 6" />}
+      </svg>
+    </span>
   </div>
-</Tag>
+</a>
 
 <style>
   .card {
@@ -47,11 +62,15 @@ const Tag = project.url ? 'a' : 'div';
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
-    color: inherit;
+    color: var(--text);
     text-decoration: none;
+    transition:
+      border-color 200ms ease,
+      transform 200ms ease;
   }
-  a.card:hover {
-    border-color: var(--accent);
+  .card:hover {
+    border-color: var(--text-muted);
+    transform: translateY(-2px);
   }
   .preview {
     aspect-ratio: 16 / 10; /* dimensões fixas evitam CLS (CA-12) */
@@ -65,28 +84,58 @@ const Tag = project.url ? 'a' : 'div';
     height: 100%;
     object-fit: cover;
   }
+  /* sem print ainda: o nome em serifa, bem discreto */
   .placeholder {
-    color: var(--text-muted);
-    font-size: 0.9rem;
+    font-family: var(--font-serif);
+    font-size: 2.6rem;
+    font-style: italic;
+    color: var(--border);
   }
   .body {
-    padding: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     flex: 1;
+    padding: 1.5rem;
+  }
+  .kind {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
   }
   h3 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.9rem;
+    font-weight: 400;
+    line-height: 1.1;
   }
   p {
+    flex: 1;
     margin: 0;
     color: var(--text-muted);
-    flex: 1;
+    line-height: 1.6;
   }
-  .link {
-    color: var(--accent);
-    font-size: 0.95rem;
+  .more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .more svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 200ms ease;
+  }
+  .card:hover .more svg {
+    transform: translateX(3px);
   }
 </style>
