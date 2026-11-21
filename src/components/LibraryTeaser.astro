@@ -6,7 +6,7 @@ const items = (await getCollection('biblioteca', ({ data }) => !data.draft)).sli
 ---
 
 <!-- Composição de acervo (RI-006). PROVISÓRIO: layout a refinar na Fase 3. -->
-<section class="section container" aria-labelledby="library-title">
+<section class="section container library" aria-labelledby="library-title">
   <h2 id="library-title">Library</h2>
   {items.length ? (
     <ul class="shelf">
@@ -26,6 +26,9 @@ const items = (await getCollection('biblioteca', ({ data }) => !data.draft)).sli
 </section>
 
 <style>
+  .library {
+    border-top: 1px solid var(--border);
+  }
   .shelf {
     list-style: none;
     padding: 0;

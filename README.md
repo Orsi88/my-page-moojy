@@ -6,7 +6,7 @@ Site pessoal da Moojy em [Astro](https://astro.build) + TypeScript, estático e 
 
 ```sh
 npm install
-npm run dev      # http://localhost:4321/my-page-moojy/
+npm run dev      # http://localhost:4321
 npm run check    # tipos e diagnósticos do Astro
 npm run build    # gera dist/
 npm run format   # Prettier
@@ -41,8 +41,8 @@ Texto do artigo.
 1. Copie `src/content/artigos/_modelo.md` e renomeie, sem o `_` (ex.: `meu-texto.md` → `/artigos/meu-texto`).
 2. Preencha `title`, `description` e `date`, e escreva o texto em Markdown.
 3. Para publicar, mude `draft: true` para `draft: false` (ou apague a linha).
-4. Confira em `npm run dev` → http://localhost:4321/my-page-moojy/articles.
-5. Faça commit e push na branch `main`: o GitHub publica sozinho em https://orsi88.github.io/my-page-moojy/ (uns 2 minutos).
+4. Confira em `npm run dev` → http://localhost:4321/articles.
+5. Publique: `npm run build` e envie o conteúdo de `dist/` para a hospedagem de moojy.com.br. O push na branch `main` também atualiza a cópia em https://orsi88.github.io/my-page-moojy/.
 
 Imagens dos artigos ficam na mesma pasta do texto (`src/content/artigos/`) e são usadas como `./nome.png`.
 

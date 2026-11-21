@@ -6,32 +6,30 @@ const articles = (await publishedArticles()).slice(0, 3);
 ---
 
 <!-- Composição editorial (RI-005). PROVISÓRIO: layout criativo a refinar na Fase 3. -->
-<section class="section articles" aria-labelledby="articles-title">
-  <div class="container">
-    <h2 id="articles-title">Articles</h2>
-    {articles.length ? (
-      <ol class="list">
-        {articles.map((a) => (
-          <li>
-            <a href={withBase(`/articles/${a.id}/`)}>
-              <time datetime={a.data.date.toISOString()}>{formatDate(a.data.date)}</time>
-              <span class="title">{a.data.title}</span>
-            </a>
-          </li>
-        ))}
-      </ol>
-    ) : (
-      <p class="empty-state">No articles published yet.</p>
-    )}
-    <a class="more" href={withBase('/articles/')}>
-      See all articles →
-    </a>
-  </div>
+<section class="section container articles" aria-labelledby="articles-title">
+  <h2 id="articles-title">Articles</h2>
+  {articles.length ? (
+    <ol class="list">
+      {articles.map((a) => (
+        <li>
+          <a href={withBase(`/articles/${a.id}/`)}>
+            <time datetime={a.data.date.toISOString()}>{formatDate(a.data.date)}</time>
+            <span class="title">{a.data.title}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p class="empty-state">No articles published yet.</p>
+  )}
+  <a class="more" href={withBase('/articles/')}>
+    See all articles →
+  </a>
 </section>
 
 <style>
   .articles {
-    border-block: 1px solid var(--border);
+    border-top: 1px solid var(--border);
   }
   .list {
     list-style: none;

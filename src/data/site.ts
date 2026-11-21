@@ -42,14 +42,12 @@ export type Project = {
 export const projectGroups: {
   id: string;
   title: string;
-  intro: string;
   empty: string;
   items: Project[];
 }[] = [
   {
     id: 'open-source',
     title: 'Open source',
-    intro: 'Tools I build in the open. Issues welcome, judgment optional.',
     empty: 'Nothing here yet.',
     items: [
       { id: 'toki', name: 'Toki', description: null, url: null, preview: null },
@@ -60,7 +58,6 @@ export const projectGroups: {
   {
     id: 'random',
     title: 'Random projects',
-    intro: 'Experiments, side quests and things that seemed like a good idea at the time.',
     empty: 'Nothing here yet. Give it a weekend or two.',
     items: [
       { id: 'libelula', name: 'Libélula', description: null, url: null, preview: null },

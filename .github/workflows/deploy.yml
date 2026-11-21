@@ -18,6 +18,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # a cópia do GitHub Pages mora numa subpasta; o domínio moojy.com.br usa a raiz
+    env:
+      SITE_URL: https://orsi88.github.io
+      BASE_PATH: /my-page-moojy
     steps:
       - uses: actions/checkout@v4
       - uses: withastro/action@v3
