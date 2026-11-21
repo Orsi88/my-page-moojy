@@ -69,7 +69,7 @@ export const projectGroups: {
         description:
           'Generates and validates test data, files and documents. Everything runs in your browser, so nothing leaves your machine.',
         preview: null,
-        repo: 'https://github.com/toki-mass/Toki',
+        repo: 'https://github.com/Orsi88/Toki',
         appUrl: 'https://toki.moojy.com.br',
         direct: true, // o Toki é a própria página dele
       },
@@ -80,8 +80,8 @@ export const projectGroups: {
         description:
           'A local workspace for AI-assisted work. It turns a folder into a project with context, notes, activities and agents, and works with the AI you already use. No account, no server, no lock-in.',
         preview: null,
-        repo: 'https://github.com/moki-app/Moki',
-        release: 'moki-app/Moki',
+        repo: 'https://github.com/Orsi88/Moki',
+        release: 'Orsi88/Moki',
       },
       {
         id: 'nexo',
@@ -90,11 +90,11 @@ export const projectGroups: {
         description:
           'An open source panel to discover, configure, run, monitor and share test automation pipelines on Azure DevOps and GitHub Actions. There is no hosted version: you run your own instance.',
         preview: null,
-        repo: 'https://github.com/nexo-pipelines/nexo',
+        repo: 'https://github.com/Orsi88/nexo',
         selfHost: {
           commands:
-            'git clone https://github.com/nexo-pipelines/nexo.git\ncd nexo/deploy/compose\ncp .env.example .env    # change every value\ndocker compose up -d --build',
-          docs: 'https://github.com/nexo-pipelines/nexo#instalação-self-hosted',
+            'git clone https://github.com/Orsi88/nexo.git\ncd nexo/deploy/compose\ncp .env.example .env    # change every value\ndocker compose up -d --build',
+          docs: 'https://github.com/Orsi88/nexo#instalação-self-hosted',
         },
       },
     ],

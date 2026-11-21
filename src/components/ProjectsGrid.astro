@@ -1,37 +1,134 @@
 ---
-// Projetos da home: uma seção por grupo (open source, aleatórios). Dados em src/data/site.ts.
+// Projetos da home: um carrossel por grupo (open source, aleatórios). Dados em src/data/site.ts.
+// O card em evidência fica sempre centralizado; os vizinhos aparecem mais apagados.
 import ProjectCard from './ProjectCard.astro';
 import { projectGroups } from '../data/site';
 ---
 
-<section id="projects" class="container projects" aria-labelledby="projects-title">
-  <p class="eyebrow" id="projects-title">
-    Projects
-  </p>
+<section id="projects" class="projects" aria-labelledby="projects-title">
+  <div class="container top">
+    <p class="eyebrow" id="projects-title">
+      Projects
+    </p>
+  </div>
 
   {projectGroups.map((group) => (
-    <section class="group" aria-labelledby={`group-${group.id}`}>
-      <h2 id={`group-${group.id}`}>{group.title}</h2>
+    <section
+      class="group"
+      aria-labelledby={`group-${group.id}`}
+      aria-roledescription="carousel"
+      data-carousel
+    >
+      <div class="container head">
+        <h2 id={`group-${group.id}`}>{group.title}</h2>
+        {group.items.length > 1 && (
+          <div class="controls">
+            <button type="button" data-prev aria-label={`Previous ${group.title} project`}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19 12H5M11 6l-6 6 6 6" />
+              </svg>
+            </button>
+            <button type="button" data-next aria-label={`Next ${group.title} project`}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
       {group.items.length ? (
-        <ul class="grid">
+        <ul class="track">
           {group.items.map((p) => (
-            <li>
+            <li class="slide" aria-roledescription="slide" aria-label={p.name}>
               <ProjectCard project={p} />
             </li>
           ))}
         </ul>
       ) : (
-        <p class="empty">{group.empty}</p>
+        <p class="container empty">{group.empty}</p>
       )}
     </section>
   ))}
 </section>
 
+<script>
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('.track');
+    if (!track) return;
+    const slides = [...track.querySelectorAll<HTMLElement>('.slide')];
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = root.querySelector<HTMLButtonElement>('[data-next]');
+    let active = 0;
+
+    // rola o trilho até o card ficar no centro
+    const center = (i: number, smooth = true) => {
+      const slide = slides[i];
+      track.scrollTo({
+        left: slide.offsetLeft - (track.clientWidth - slide.offsetWidth) / 2,
+        behavior: smooth && !reduceMotion.matches ? 'smooth' : 'auto',
+      });
+    };
+
+    // o card mais perto do centro é o que está em evidência
+    const update = () => {
+      const middle = track.scrollLeft + track.clientWidth / 2;
+      let best = 0;
+      let bestDistance = Infinity;
+      slides.forEach((slide, i) => {
+        const distance = Math.abs(slide.offsetLeft + slide.offsetWidth / 2 - middle);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = i;
+        }
+      });
+      active = best;
+      slides.forEach((slide, i) => slide.toggleAttribute('data-active', i === best));
+      if (prev) prev.disabled = best === 0;
+      if (next) next.disabled = best === slides.length - 1;
+    };
+
+    let frame = 0;
+    track.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+    prev?.addEventListener('click', () => center(Math.max(0, active - 1)));
+    next?.addEventListener('click', () => center(Math.min(slides.length - 1, active + 1)));
+
+    slides.forEach((slide, i) => {
+      // clicar num card lateral só traz ele para o centro; o do centro abre o projeto
+      slide.addEventListener('click', (event) => {
+        if (i !== active) {
+          event.preventDefault();
+          center(i);
+        }
+      });
+      // navegando pelo teclado, o card focado vai para o centro
+      slide.addEventListener('focusin', () => center(i));
+    });
+
+    // começa pelo card do meio
+    center(Math.floor((slides.length - 1) / 2), false);
+    update();
+    new ResizeObserver(() => center(active, false)).observe(track);
+  });
+</script>
+
 <style>
   .projects {
-    padding-block: clamp(4rem, 10vw, 7rem);
-    border-top: 1px solid var(--border);
+    --card-w: clamp(17rem, 34vw, 27rem);
+    padding-bottom: clamp(4rem, 10vw, 7rem);
     scroll-margin-top: 1rem;
+  }
+  .top {
+    padding-top: clamp(4rem, 10vw, 7rem);
+    border-top: 1px solid var(--border);
   }
   .eyebrow {
     display: flex;
@@ -53,31 +150,101 @@ import { projectGroups } from '../data/site';
   .group + .group {
     margin-top: clamp(4rem, 9vw, 6rem);
   }
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
   h2 {
-    margin: 0 0 2rem;
+    margin: 0;
     font-size: clamp(2.2rem, 4.5vw, 3.2rem);
     font-weight: 400;
     line-height: 1.05;
   }
-  .grid {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+
+  /* setas */
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .controls button {
     display: grid;
-    gap: var(--space);
-    /* três por linha em desktop (CA-04), empilhados no celular (CA-05) */
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    color: var(--text);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+      border-color 200ms ease,
+      opacity 200ms ease;
   }
-  @media (min-width: 960px) {
-    .grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+  .controls button:hover:not(:disabled) {
+    border-color: var(--text);
   }
+  .controls button:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .controls svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* trilho: ocupa a largura toda da tela; o espaço nas pontas deixa o primeiro e o
+     último card chegarem ao centro */
+  .track {
+    position: relative;
+    display: flex;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    margin: 0;
+    padding: 0.5rem calc(50% - var(--card-w) / 2) 1rem;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .track::-webkit-scrollbar {
+    display: none;
+  }
+  .slide {
+    flex: 0 0 var(--card-w);
+    scroll-snap-align: center;
+    opacity: 0.45;
+    transform: scale(0.94);
+    transition:
+      opacity 350ms ease,
+      transform 350ms ease;
+  }
+  .slide[data-active] {
+    opacity: 1;
+    transform: none;
+  }
+  .slide:not([data-active]) :global(.card) {
+    cursor: pointer;
+  }
+
   .empty {
     margin: 0;
-    padding: 2rem 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
+    padding-block: 2rem;
+    border-block: 1px solid var(--border);
     color: var(--text-muted);
+  }
+
+  @media (max-width: 700px) {
+    .projects {
+      --card-w: 82vw;
+    }
   }
 </style>
