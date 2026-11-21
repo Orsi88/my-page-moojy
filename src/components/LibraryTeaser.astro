@@ -1,0 +1,60 @@
+---
+import { withBase } from '../utils/url';
+import { getCollection } from 'astro:content';
+
+const items = (await getCollection('biblioteca', ({ data }) => !data.draft)).slice(0, 4);
+---
+
+<!-- Composição de acervo (RI-006). PROVISÓRIO: layout a refinar na Fase 3. -->
+<section class="section container" aria-labelledby="library-title">
+  <h2 id="library-title">Library</h2>
+  {items.length ? (
+    <ul class="shelf">
+      {items.map((i) => (
+        <li>
+          <span class="category">{i.data.category}</span>
+          <span class="title">{i.data.title}</span>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p class="empty-state">The library is still being organized.</p>
+  )}
+  <a class="more" href={withBase('/library/')}>
+    Browse the library →
+  </a>
+</section>
+
+<style>
+  .shelf {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+  .shelf li {
+    padding: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .category {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .title {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+  }
+  .more {
+    display: inline-block;
+    margin-top: 1.5rem;
+  }
+</style>

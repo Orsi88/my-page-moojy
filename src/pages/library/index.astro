@@ -1,0 +1,214 @@
+---
+import { withBase } from '../../utils/url';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+
+const items = (await getCollection('biblioteca', ({ data }) => !data.draft)).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title, 'en'),
+);
+
+// agrupa por categoria, em ordem alfabética
+const groups = [...new Set(items.map((i) => i.data.category))]
+  .sort((a, b) => a.localeCompare(b, 'en'))
+  .map((category) => ({ category, items: items.filter((i) => i.data.category === category) }));
+
+const slug = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-');
+
+// o que o clique faz: baixar um arquivo do site, abrir um link externo ou nada (em breve)
+const actionOf = (data: (typeof items)[number]['data']) => {
+  if (data.file) {
+    const ext = data.file.split('.').pop()?.toUpperCase() ?? 'file';
+    return { href: withBase(data.file), label: `Download ${ext}`, external: false, download: true };
+  }
+  if (data.url) return { href: data.url, label: 'Open link', external: true, download: false };
+  return null;
+};
+---
+
+<BaseLayout title="Library" description="Templates, checklists and resources by Moojy.">
+  <div class="container">
+    <PageHeader
+      eyebrow="Library"
+      title="Useful things, organized."
+      intro="Templates, checklists and resources to make it look like everything was always under control."
+    />
+
+    {groups.length ? (
+      <div class="groups">
+        {groups.map((g) => (
+          <section class="group" aria-labelledby={`cat-${slug(g.category)}`}>
+            <h2 id={`cat-${slug(g.category)}`}>
+              {g.category}
+              <span class="count">{g.items.length}</span>
+            </h2>
+            <ul>
+              {g.items.map((i) => {
+                const action = actionOf(i.data);
+                const inner = (
+                  <>
+                    <span class="body">
+                      <span class="title">{i.data.title}</span>
+                      <span class="description">{i.data.description}</span>
+                    </span>
+                    <span class:list={['action', { soon: !action }]}>
+                      {action ? action.label : 'Coming soon'}
+                      {action && (
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          {action.download ? (
+                            <path d="M12 4v12M6 11l6 6 6-6M5 20h14" />
+                          ) : (
+                            <path d="M7 17 17 7M8 7h9v9" />
+                          )}
+                        </svg>
+                      )}
+                    </span>
+                  </>
+                );
+                return (
+                  <li>
+                    {action ? (
+                      <a
+                        class="item"
+                        href={action.href}
+                        download={action.download ? '' : undefined}
+                        target={action.external ? '_blank' : undefined}
+                        rel={action.external ? 'noopener noreferrer' : undefined}
+                      >
+                        {inner}
+                      </a>
+                    ) : (
+                      <div class="item">{inner}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <div class="empty">
+        <p class="empty-title">The shelves are still empty.</p>
+        <p>The materials are being organized. Which, to be fair, is very on brand for a library.</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .groups {
+    display: grid;
+    gap: clamp(3rem, 7vw, 4.5rem);
+    padding-block: clamp(3rem, 7vw, 4.5rem) clamp(4rem, 10vw, 7rem);
+  }
+  h2 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .count {
+    font-variant-numeric: tabular-nums;
+    font-weight: 400;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border);
+  }
+  li {
+    border-bottom: 1px solid var(--border);
+  }
+  .item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 2rem;
+    align-items: center;
+    padding-block: 1.5rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .body {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.45rem, 2.6vw, 1.8rem);
+    line-height: 1.15;
+  }
+  .description {
+    max-width: 40rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    color: var(--text-muted);
+    transition: color 200ms ease;
+  }
+  .action svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 200ms ease;
+  }
+  .soon {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.65rem;
+    border: 1px dashed var(--border);
+    border-radius: 999px;
+  }
+  a.item:hover .title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  a.item:hover .action {
+    color: var(--text);
+  }
+  a.item:hover .action svg {
+    transform: translate(2px, -2px);
+  }
+
+  .empty {
+    padding-block: clamp(3rem, 8vw, 5rem) clamp(5rem, 12vw, 8rem);
+    color: var(--text-muted);
+  }
+  .empty-title {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-serif);
+    font-size: 1.8rem;
+    color: var(--text);
+  }
+  .empty p {
+    margin-top: 0;
+  }
+
+  @media (max-width: 700px) {
+    .item {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

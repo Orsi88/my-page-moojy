@@ -1,0 +1,132 @@
+---
+import { withBase } from '../../utils/url';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { formatDate, publishedArticles, readingTime } from '../../utils/articles';
+
+const articles = await publishedArticles();
+---
+
+<BaseLayout title="Articles" description="Notes and unsolicited opinions by Moojy.">
+  <div class="container">
+    <PageHeader
+      eyebrow="Articles"
+      title="Unsolicited opinions."
+      intro="Notes on software quality, tools and whatever seems important at 2 a.m."
+    />
+
+    {articles.length ? (
+      <ol class="list">
+        {articles.map((a) => (
+          <li>
+            <a href={withBase(`/articles/${a.id}/`)}>
+              <time datetime={a.data.date.toISOString()}>{formatDate(a.data.date, 'medium')}</time>
+              <span class="body">
+                <span class="title">{a.data.title}</span>
+                <span class="description">{a.data.description}</span>
+                <span class="meta">{readingTime(a)} min read</span>
+              </span>
+              <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </a>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty">
+        <p class="empty-title">Nothing published yet.</p>
+        <p>The drafts exist, I promise. They’re just going through a very rigorous review.</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .list {
+    list-style: none;
+    margin: 0 0 clamp(4rem, 10vw, 7rem);
+    padding: 0;
+  }
+  .list li {
+    border-bottom: 1px solid var(--border);
+  }
+  .list a {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr) auto;
+    gap: 0.5rem 2rem;
+    align-items: baseline;
+    padding-block: 2rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+  time {
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+  .body {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .title {
+    font-family: var(--font-serif);
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    line-height: 1.15;
+  }
+  .description {
+    max-width: 40rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .arrow {
+    align-self: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--text-muted);
+    transition:
+      transform 200ms ease,
+      color 200ms ease;
+  }
+  .list a:hover .title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  .list a:hover .arrow {
+    color: var(--text);
+    transform: translateX(4px);
+  }
+
+  .empty {
+    padding-block: clamp(3rem, 8vw, 5rem) clamp(5rem, 12vw, 8rem);
+    color: var(--text-muted);
+  }
+  .empty-title {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-serif);
+    font-size: 1.8rem;
+    color: var(--text);
+  }
+  .empty p {
+    margin-top: 0;
+  }
+
+  @media (max-width: 700px) {
+    .list a {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .arrow {
+      display: none;
+    }
+  }
+</style>

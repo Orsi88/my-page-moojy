@@ -1,0 +1,67 @@
+---
+import { withBase } from '../utils/url';
+import { formatDate, publishedArticles } from '../utils/articles';
+
+const articles = (await publishedArticles()).slice(0, 3);
+---
+
+<!-- Composição editorial (RI-005). PROVISÓRIO: layout criativo a refinar na Fase 3. -->
+<section class="section articles" aria-labelledby="articles-title">
+  <div class="container">
+    <h2 id="articles-title">Articles</h2>
+    {articles.length ? (
+      <ol class="list">
+        {articles.map((a) => (
+          <li>
+            <a href={withBase(`/articles/${a.id}/`)}>
+              <time datetime={a.data.date.toISOString()}>{formatDate(a.data.date)}</time>
+              <span class="title">{a.data.title}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <p class="empty-state">No articles published yet.</p>
+    )}
+    <a class="more" href={withBase('/articles/')}>
+      See all articles →
+    </a>
+  </div>
+</section>
+
+<style>
+  .articles {
+    border-block: 1px solid var(--border);
+  }
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+  }
+  .list a {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: 1rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--border);
+    color: inherit;
+    text-decoration: none;
+  }
+  time {
+    color: var(--text-muted);
+  }
+  .title {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+  }
+  .more {
+    display: inline-block;
+    margin-top: 1rem;
+  }
+  @media (max-width: 640px) {
+    .list a {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

@@ -1,0 +1,100 @@
+---
+// Projetos da home: uma seção por grupo (open source, aleatórios). Dados em src/data/site.ts.
+import ProjectCard from './ProjectCard.astro';
+import { projectGroups } from '../data/site';
+---
+
+<section id="projects" class="container projects" aria-labelledby="projects-title">
+  <p class="eyebrow" id="projects-title">
+    Projects
+  </p>
+
+  {projectGroups.map((group) => (
+    <section class="group" aria-labelledby={`group-${group.id}`}>
+      <header>
+        <h2 id={`group-${group.id}`}>{group.title}</h2>
+        <p>{group.intro}</p>
+      </header>
+      {group.items.length ? (
+        <ul class="grid">
+          {group.items.map((p) => (
+            <li>
+              <ProjectCard project={p} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="empty">{group.empty}</p>
+      )}
+    </section>
+  ))}
+</section>
+
+<style>
+  .projects {
+    padding-block: clamp(4rem, 10vw, 7rem);
+    border-top: 1px solid var(--border);
+    scroll-margin-top: 1rem;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .eyebrow::before {
+    content: '';
+    width: 2rem;
+    height: 1px;
+    background: currentColor;
+  }
+  .group + .group {
+    margin-top: clamp(4rem, 9vw, 6rem);
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 3rem;
+    margin-bottom: 2rem;
+  }
+  h2 {
+    margin: 0;
+    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.05;
+  }
+  header p {
+    max-width: 28rem;
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space);
+    /* três por linha em desktop (CA-04), empilhados no celular (CA-05) */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+  @media (min-width: 960px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .empty {
+    margin: 0;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+</style>

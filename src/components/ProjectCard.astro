@@ -1,0 +1,92 @@
+---
+import type { Project } from '../data/site';
+import { PROVISIONAL } from '../data/site';
+
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const Tag = project.url ? 'a' : 'div';
+---
+
+<Tag
+  class="card"
+  href={project.url ?? undefined}
+  target={project.url ? '_blank' : undefined}
+  rel={project.url ? 'noopener' : undefined}
+>
+  <div class="preview">
+    {project.preview ? (
+      <img
+        src={project.preview}
+        alt={`${project.name} preview`}
+        width="640"
+        height="400"
+        loading="lazy"
+      />
+    ) : (
+      <span class="placeholder">Preview pending</span>
+    )}
+  </div>
+  <div class="body">
+    <h3>{project.name}</h3>
+    <p>
+      {project.description ?? 'Description pending.'}
+      {!project.description && <span class="provisional">{PROVISIONAL}</span>}
+    </p>
+    <span class="link">{project.url ? 'Open project ↗' : 'Public link pending'}</span>
+  </div>
+</Tag>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
+  }
+  a.card:hover {
+    border-color: var(--accent);
+  }
+  .preview {
+    aspect-ratio: 16 / 10; /* dimensões fixas evitam CLS (CA-12) */
+    display: grid;
+    place-items: center;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .placeholder {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+  }
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  p {
+    margin: 0;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  .link {
+    color: var(--accent);
+    font-size: 0.95rem;
+  }
+</style>
