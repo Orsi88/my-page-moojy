@@ -1,63 +1,110 @@
 ---
+// Library na home: carrossel de cards pequenos com os materiais da biblioteca.
+import Carousel from './Carousel.astro';
+import MiniCard from './MiniCard.astro';
+import { actionOf, libraryItems, type LibraryItem } from '../utils/library';
 import { withBase } from '../utils/url';
-import { getCollection } from 'astro:content';
 
-const items = (await getCollection('biblioteca', ({ data }) => !data.draft)).slice(0, 4);
+const items = await libraryItems();
 ---
 
-<!-- Composição de acervo (RI-006). PROVISÓRIO: layout a refinar na Fase 3. -->
-<section class="section container library" aria-labelledby="library-title">
-  <h2 id="library-title">Library</h2>
+<section class="teaser" aria-labelledby="library-title">
+  <div class="container head">
+    <h2 id="library-title">Library</h2>
+    <a class="all" href={withBase('/library/')}>
+      See all
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6"></path>
+      </svg>
+    </a>
+  </div>
   {items.length ? (
-    <ul class="shelf">
-      {items.map((i) => (
-        <li>
-          <span class="category">{i.data.category}</span>
-          <span class="title">{i.data.title}</span>
-        </li>
-      ))}
-    </ul>
+    <Carousel
+      items={items}
+      label="Library"
+      size="sm"
+      keyOf={(i: LibraryItem) => i.id}
+      nameOf={(i: LibraryItem) => i.data.title}
+    >
+      {(i: LibraryItem, clone: boolean) => {
+        const action = actionOf(i.data);
+        return (
+          <MiniCard
+            href={action?.href}
+            external={action?.external}
+            download={action?.download}
+            icon={action?.download ? 'download' : 'external'}
+            eyebrow={i.data.category}
+            title={i.data.title}
+            text={i.data.description}
+            action={action?.label ?? 'Coming soon'}
+            clone={clone}
+          />
+        );
+      }}
+    </Carousel>
   ) : (
-    <p class="empty-state">The library is still being organized.</p>
+    <div class="container">
+      <p class="empty">
+        <span class="empty-title">The shelves are still empty.</span>
+        The materials are being organized. Which, to be fair, is very on brand for a library.
+      </p>
+    </div>
   )}
-  <a class="more" href={withBase('/library/')}>
-    Browse the library →
-  </a>
 </section>
 
 <style>
-  .library {
+  .teaser {
+    padding-bottom: clamp(4rem, 9vw, 6rem);
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    padding-top: clamp(4rem, 9vw, 6rem);
     border-top: 1px solid var(--border);
   }
-  .shelf {
-    list-style: none;
-    padding: 0;
+  h2 {
     margin: 0;
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.05;
   }
-  .shelf li {
-    padding: 1.25rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+  .all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
   }
-  .category {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+  .all:hover {
+    border-color: var(--text);
+  }
+  svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .empty {
+    margin: 0;
+    padding: 1.75rem;
     color: var(--text-muted);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
   }
-  .title {
+  .empty-title {
+    display: block;
+    margin-bottom: 0.35rem;
     font-family: var(--font-serif);
-    font-size: 1.2rem;
-  }
-  .more {
-    display: inline-block;
-    margin-top: 1.5rem;
+    font-size: 1.6rem;
+    color: var(--text);
   }
 </style>

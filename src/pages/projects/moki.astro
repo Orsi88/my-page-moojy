@@ -1,0 +1,637 @@
+---
+// Página do Moki, com a cara dele: aconchegante, cor de café e um gato que julga você.
+// Imagens: public/projects/moki/ (vindas do repositório do Moki). Textos baseados no README.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectPeople from '../../components/ProjectPeople.astro';
+import { allProjects, people } from '../../data/site';
+import { formatDate } from '../../utils/articles';
+import { repoInfo } from '../../utils/github';
+import { latestRelease } from '../../utils/releases';
+import { withBase } from '../../utils/url';
+
+const project = allProjects.find((p) => p.id === 'moki')!;
+const releasesPage = `https://github.com/${project.release}/releases`;
+const [release, info] = await Promise.all([
+  latestRelease(project.release!),
+  repoInfo(project.repo!, people),
+]);
+const windows = release?.downloads.find((d) => d.file.endsWith('.exe'));
+const vsix = release?.downloads.find((d) => d.file.endsWith('.vsix'));
+
+const features = [
+  {
+    cat: 'folder',
+    title: 'Projects & context',
+    text: 'Workspaces with confirmed context, inbox, notes and deliveries in one place. Link an existing folder without copying it.',
+  },
+  {
+    cat: 'pencil',
+    title: 'Notes & quick assistants',
+    text: 'Markdown notes with / commands and @ mentions. One-click assistants improve, summarize or review, and nothing changes until you approve.',
+  },
+  {
+    cat: 'robot',
+    title: 'Activities, skills & agents',
+    text: 'Reusable requests, procedures and roles. Operations chain agents together, and runs record what happened and what was delivered.',
+  },
+  {
+    cat: 'chat',
+    title: 'Project chat',
+    text: 'Claude Code or Codex in tabs, with the project’s files, skills and MCP tools at hand. Ctrl+L and you’re in.',
+  },
+  {
+    cat: 'document',
+    title: 'Documents, PDFs & diagrams',
+    text: 'Edit Markdown, read and comment PDFs, present slides, and open Mermaid, PlantUML and Excalidraw without leaving the project.',
+  },
+  {
+    cat: 'plug',
+    title: 'Routines & integrations',
+    text: 'Scheduled read-only checks, MCP connections, and the same context inside your IDE through the VS Code extension.',
+  },
+];
+
+const ais = [
+  'Claude Code',
+  'Codex',
+  'Gemini',
+  'Cursor',
+  'Antigravity',
+  'Copilot Chat',
+  'a plain web chat',
+];
+
+const steps = [
+  'Choose or create a workspace.',
+  'Create a project, or open an existing folder as one.',
+  'Add files, notes and confirmed context.',
+  'Call an activity, agent, skill or operation, and pick your AI.',
+  'Review, approve the important steps, and pick it up again whenever you want.',
+];
+---
+
+<BaseLayout title="Moki" description={project.description ?? undefined}>
+  <div class="moki">
+    <!-- abertura -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-text">
+          <a class="back" href={withBase('/#projects')}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 12H5M11 6l-6 6 6 6"></path>
+            </svg>
+            Projects
+          </a>
+          <p class="eyebrow">{project.kind}</p>
+          <h1>
+            Organize the chaos. <em>The cat will judge you anyway.</em>
+          </h1>
+          <p class="lead">
+            Moki is a local workspace for AI-assisted work. It turns a folder into a living project
+            with context, notes, reusable activities, skills and agents, and a record of what has
+            been delivered.
+          </p>
+          <div class="actions">
+            <a class="cta" href={windows?.url ?? releasesPage}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4v12M6 11l6 6 6-6M5 20h14"></path>
+              </svg>
+              Download for Windows
+            </a>
+            <a class="secondary" href={project.repo!} target="_blank" rel="noopener noreferrer">
+              View on GitHub
+            </a>
+          </div>
+          {release && (
+            <p class="version">
+              {release.version}
+              {windows && ` · ${windows.size}`} · free and open source
+            </p>
+          )}
+        </div>
+        <img
+          class="pixel hero-cat"
+          src={withBase('/projects/moki/hero.png')}
+          alt="A pixel-art cat glaring at a laptop, with a cup of coffee"
+          width="600"
+          height="480"
+        />
+      </div>
+    </section>
+
+    <!-- as três promessas -->
+    <section class="promises container" aria-label="What Moki doesn’t do">
+      <div>
+        <p class="big">No account.</p>
+        <p>Nothing to sign up for, nothing to log into.</p>
+      </div>
+      <div>
+        <p class="big">No server.</p>
+        <p>Your projects live on your machine, in Documents\Moki.</p>
+      </div>
+      <div>
+        <p class="big">No lock-in.</p>
+        <p>Plain files, and you choose the AI. Leave whenever.</p>
+      </div>
+    </section>
+
+    <!-- o que faz -->
+    <section class="container block" aria-labelledby="features-title">
+      <p class="eyebrow">What it does</p>
+      <h2 id="features-title">
+        A whole desk, <em>minus the mess.</em>
+      </h2>
+      <ul class="features">
+        {features.map((f) => (
+          <li>
+            <img
+              class="pixel"
+              src={withBase(`/projects/moki/cat-${f.cat}.png`)}
+              alt=""
+              width="128"
+              height="128"
+              loading="lazy"
+            />
+            <h3>{f.title}</h3>
+            <p>{f.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- funciona com -->
+    <section class="container block works" aria-labelledby="ai-title">
+      <h2 id="ai-title">
+        Works with the AI <em>you already use.</em>
+      </h2>
+      <ul class="chips">
+        {ais.map((ai) => (
+          <li>{ai}</li>
+        ))}
+      </ul>
+      <p class="note">
+        You pick the tool. Moki prepares the request, keeps the project tidy and lets you continue
+        later, even in another tool.
+      </p>
+    </section>
+
+    <!-- como funciona -->
+    <section class="container block how" aria-labelledby="how-title">
+      <div>
+        <p class="eyebrow">How it works</p>
+        <h2 id="how-title">
+          Five steps. <em>The cat counted.</em>
+        </h2>
+        <ol class="steps">
+          {steps.map((s) => (
+            <li>{s}</li>
+          ))}
+        </ol>
+      </div>
+      <img
+        class="pixel"
+        src={withBase('/projects/moki/thinking.png')}
+        alt="A pixel-art cat thinking in front of a laptop, books and coffee"
+        width="600"
+        height="376"
+        loading="lazy"
+      />
+    </section>
+
+    <!-- downloads -->
+    <section class="container block" id="download" aria-labelledby="download-title">
+      <p class="eyebrow">Download</p>
+      <h2 id="download-title">Get Moki</h2>
+      {release && release.downloads.length ? (
+        <>
+          <ul class="downloads">
+            {[windows, vsix].filter(Boolean).map((d) => (
+              <li>
+                <a href={d!.url}>
+                  <span class="d-label">{d!.label}</span>
+                  <span class="d-file">
+                    {d!.file} · {d!.size}
+                  </span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 4v12M6 11l6 6 6-6M5 20h14" />
+                  </svg>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p class="note">
+            Version {release.version}, released {formatDate(release.date)}.{' '}
+            <a href={release.url} target="_blank" rel="noopener noreferrer">
+              Release notes
+            </a>
+            . A newer installer updates the app without touching your workspaces.
+          </p>
+        </>
+      ) : (
+        <p class="note">
+          Downloads live on{' '}
+          <a href={releasesPage} target="_blank" rel="noopener noreferrer">
+            GitHub Releases
+          </a>
+          .
+        </p>
+      )}
+    </section>
+
+    <!-- quem fez -->
+    {info && info.people.length > 0 && (
+      <section class="container block" aria-labelledby="people-title">
+        <p class="eyebrow">Contributors</p>
+        <h2 id="people-title">The humans behind the cat</h2>
+        <ProjectPeople people={info.people} />
+      </section>
+    )}
+
+    <!-- despedida -->
+    <section class="outro">
+      <div class="container outro-grid">
+        <img
+          class="pixel"
+          src={withBase('/projects/moki/box.png')}
+          alt="A curious pixel-art cat peeking out of a box"
+          width="560"
+          height="351"
+          loading="lazy"
+        />
+        <div>
+          <h2>
+            Still here? <em>The cat noticed.</em>
+          </h2>
+          <a class="cta" href={windows?.url ?? releasesPage}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4v12M6 11l6 6 6-6M5 20h14"></path>
+            </svg>
+            Download Moki
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  /* paleta do Moki: creme, café e orelha rosa */
+  .moki {
+    --m-bg: #f3eadb;
+    --m-paper: #fbf6ee;
+    --m-ink: #2b211c;
+    --m-soft: #6e5c4f;
+    --m-line: #e2d3bd;
+    --m-pink: #e79a9a;
+    --m-coffee: #8a5a3b;
+    --people-border: var(--m-line);
+    color: var(--m-ink);
+    background: var(--m-bg);
+  }
+  :global([data-theme='dark']) .moki {
+    --m-bg: #1f1915;
+    --m-paper: #29211c;
+    --m-ink: #f3e9dc;
+    --m-soft: #b9a593;
+    --m-line: #3c3029;
+    --m-pink: #e8a3a3;
+    --m-coffee: #d29a6e;
+  }
+
+  .pixel {
+    image-rendering: pixelated;
+    height: auto;
+  }
+  svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+  }
+  em {
+    font-style: italic;
+    color: var(--m-coffee);
+  }
+  .eyebrow {
+    margin: 0 0 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--m-soft);
+  }
+  h2 {
+    margin: 0 0 2.5rem;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+  .block {
+    padding-block: clamp(4rem, 9vw, 6.5rem);
+    border-top: 1px solid var(--m-line);
+  }
+  .note {
+    max-width: 40rem;
+    color: var(--m-soft);
+    line-height: 1.7;
+  }
+  .note a {
+    color: var(--m-ink);
+    text-underline-offset: 0.2em;
+  }
+
+  /* botões */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.75rem;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1.5rem;
+    font-weight: 500;
+    color: var(--m-paper);
+    background: var(--m-ink);
+    border-radius: 999px;
+    text-decoration: none;
+    box-shadow: 0 4px 0 var(--m-coffee);
+    transition:
+      transform 150ms ease,
+      box-shadow 150ms ease;
+  }
+  .cta:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--m-coffee);
+  }
+  .secondary {
+    color: var(--m-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--m-line);
+    padding-bottom: 2px;
+  }
+  .secondary:hover {
+    border-color: var(--m-ink);
+  }
+
+  /* abertura */
+  .hero {
+    padding-block: clamp(2.5rem, 6vw, 4rem) clamp(3rem, 7vw, 5rem);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.9rem;
+    color: var(--m-soft);
+    text-decoration: none;
+  }
+  .back:hover {
+    color: var(--m-ink);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(2.8rem, 6.5vw, 5.4rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  .lead {
+    max-width: 34rem;
+    margin: 1.75rem 0 2.5rem;
+    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+    line-height: 1.7;
+    color: var(--m-soft);
+  }
+  .version {
+    margin: 1.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--m-soft);
+  }
+  .hero-cat {
+    width: 100%;
+    max-width: 34rem;
+    justify-self: center;
+  }
+
+  /* promessas */
+  .promises {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem;
+    padding-block: 2.5rem 3.5rem;
+  }
+  .promises p {
+    margin: 0;
+    color: var(--m-soft);
+  }
+  .promises .big {
+    margin-bottom: 0.4rem;
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1;
+    color: var(--m-ink);
+  }
+
+  /* o que faz */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .features li {
+    padding: 1.75rem;
+    background: var(--m-paper);
+    border: 1px solid var(--m-line);
+    border-radius: calc(var(--radius) + 4px);
+    transition: transform 200ms ease;
+  }
+  .features li:hover {
+    transform: translateY(-3px);
+  }
+  .features li:hover img {
+    transform: rotate(-6deg);
+  }
+  .features img {
+    width: 4.5rem;
+    margin-bottom: 1rem;
+    transition: transform 250ms ease;
+  }
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.6rem;
+    font-weight: 400;
+  }
+  .features p {
+    margin: 0;
+    color: var(--m-soft);
+    line-height: 1.65;
+  }
+
+  /* funciona com */
+  .works h2 {
+    margin-bottom: 2rem;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0 0 1.75rem;
+    padding: 0;
+    list-style: none;
+  }
+  .chips li {
+    padding: 0.55rem 1.1rem;
+    background: var(--m-paper);
+    border: 1px solid var(--m-line);
+    border-radius: 999px;
+  }
+  .chips li:last-child {
+    font-style: italic;
+    color: var(--m-soft);
+  }
+
+  /* como funciona */
+  .how {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  .how img {
+    width: 100%;
+    max-width: 32rem;
+    justify-self: center;
+  }
+  .steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .steps li {
+    position: relative;
+    padding: 0.9rem 0 0.9rem 3.25rem;
+    line-height: 1.55;
+    border-bottom: 1px solid var(--m-line);
+    counter-increment: step;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.75rem;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--m-paper);
+    background: var(--m-coffee);
+    border-radius: 999px;
+  }
+
+  /* downloads */
+  .downloads {
+    margin: 0 0 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--m-line);
+  }
+  .downloads li {
+    border-bottom: 1px solid var(--m-line);
+  }
+  .downloads a {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'label icon'
+      'file icon';
+    align-items: center;
+    column-gap: 1rem;
+    padding-block: 1.25rem;
+    color: var(--m-ink);
+    text-decoration: none;
+  }
+  .d-label {
+    grid-area: label;
+    font-family: var(--font-serif);
+    font-size: 1.8rem;
+    line-height: 1.15;
+  }
+  .d-file {
+    grid-area: file;
+    font-size: 0.85rem;
+    color: var(--m-soft);
+  }
+  .downloads svg {
+    grid-area: icon;
+    width: 1.4rem;
+    height: 1.4rem;
+    transition: transform 200ms ease;
+  }
+  .downloads a:hover svg {
+    transform: translateY(3px);
+  }
+  .downloads a:hover .d-label {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  /* despedida */
+  .outro {
+    padding-block: clamp(3rem, 7vw, 5rem);
+    background: var(--m-paper);
+    border-top: 1px solid var(--m-line);
+  }
+  .outro-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  .outro img {
+    width: 100%;
+    max-width: 30rem;
+    justify-self: center;
+  }
+  .outro h2 {
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 820px) {
+    .hero-grid,
+    .how,
+    .outro-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero-cat {
+      order: -1;
+      max-width: 20rem;
+    }
+    .promises {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
+</style>

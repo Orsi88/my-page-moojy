@@ -11,7 +11,7 @@ import { withBase } from '../../utils/url';
 export function getStaticPaths() {
   // projetos "diretos" (como o Toki) não têm página: o card abre o próprio app
   return allProjects
-    .filter((project) => !project.direct && !project.placeholder)
+    .filter((project) => !project.direct && !project.placeholder && !project.customPage)
     .map((project) => ({ params: { slug: project.id }, props: { project } }));
 }
 

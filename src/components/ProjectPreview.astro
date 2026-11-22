@@ -16,86 +16,116 @@ const external = project.direct ? (project.appUrl ?? project.repo) : null;
 const accessHref = external ?? withBase(`/projects/${project.id}/`);
 const showAccess = Boolean(project.direct ? project.appUrl : project.description);
 const titleId = `preview-title-${project.id}`;
+// sem descrição nem repositório: o projeto ainda não foi publicado
+const empty = !project.description && !project.repo;
 ---
 
 <dialog class="preview" id={`preview-${project.id}`} aria-labelledby={titleId}>
-  <div class="inner">
+  <div class:list={['inner', { empty }]} tabindex="-1" autofocus>
     <button class="close" type="button" data-close aria-label="Close preview">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M6 6l12 12M18 6 6 18"></path>
       </svg>
     </button>
 
-    {project.kind && <p class="eyebrow">{project.kind}</p>}
-    <h2 id={titleId}>{project.name}</h2>
-    <p class="description">{project.description ?? 'Details soon. It’s on the list.'}</p>
+    {empty ? (
+      <div class="nothing">
+        <p class="eyebrow">Not published yet</p>
+        <h2 id={titleId}>{project.name}</h2>
+        <p class="description">
+          This one hasn’t been uploaded yet. It exists, it’s just still in the oven. Check back
+          soon.
+        </p>
+      </div>
+    ) : (
+      <>
+        <div class="main">
+          {project.kind && <p class="eyebrow">{project.kind}</p>}
+          <h2 id={titleId}>{project.name}</h2>
+          <p class="description">{project.description}</p>
 
-    {info && (info.language || info.license) && (
-      <dl class="meta">
-        {info.language && (
-          <div>
-            <dt>Language</dt>
-            <dd>{info.language}</dd>
-          </div>
-        )}
-        {info.license && (
-          <div>
-            <dt>License</dt>
-            <dd>{info.license}</dd>
-          </div>
-        )}
-      </dl>
-    )}
+          {info && (info.language || info.license) && (
+            <dl class="meta">
+              {info.language && (
+                <div>
+                  <dt>Language</dt>
+                  <dd>{info.language}</dd>
+                </div>
+              )}
+              {info.license && (
+                <div>
+                  <dt>License</dt>
+                  <dd>{info.license}</dd>
+                </div>
+              )}
+            </dl>
+          )}
+        </div>
 
-    {info && info.people.length > 0 && (
-      <section class="people" aria-label="Contributors">
-        <h3>{info.people.length === 1 ? 'Made by' : 'Contributors'}</h3>
-        <ul>
-          {info.people.map((person) => (
-            <li>
-              <img src={person.avatar} alt="" width="40" height="40" loading="lazy" />
-              <span class="name">{person.name}</span>
-              <a href={person.link} target="_blank" rel="noopener noreferrer">
-                {person.linkLabel}
+        {info && info.people.length > 0 && (
+          <section class="people" aria-label="Contributors">
+            <h3>{info.people.length === 1 ? 'Made by' : 'Contributors'}</h3>
+            <ul>
+              {info.people.map((person) => (
+                <li>
+                  <img src={person.avatar} alt="" width="32" height="32" loading="lazy" />
+                  <span class="name">{person.name}</span>
+                  <a href={person.link} target="_blank" rel="noopener noreferrer">
+                    {person.linkLabel}
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 17 17 7M8 7h9v9" />
+                    </svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {(showAccess || project.repo) && (
+          <div class="actions">
+            {project.repo && (
+              <a class="secondary" href={project.repo} target="_blank" rel="noopener noreferrer">
+                View on GitHub
+              </a>
+            )}
+            {showAccess && (
+              <a
+                class="cta"
+                href={accessHref}
+                target={external ? '_blank' : undefined}
+                rel={external ? 'noopener noreferrer' : undefined}
+              >
+                {accessLabel(project)}
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 17 17 7M8 7h9v9" />
+                  {external ? <path d="M7 17 17 7M8 7h9v9" /> : <path d="M5 12h14M13 6l6 6-6 6" />}
                 </svg>
               </a>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
-    {(showAccess || project.repo) && (
-      <div class="actions">
-        {project.repo && (
-          <a class="secondary" href={project.repo} target="_blank" rel="noopener noreferrer">
-            View on GitHub
-          </a>
+            )}
+          </div>
         )}
-        {showAccess && (
-          <a
-            class="cta"
-            href={accessHref}
-            target={external ? '_blank' : undefined}
-            rel={external ? 'noopener noreferrer' : undefined}
-          >
-            {accessLabel(project)}
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {external ? <path d="M7 17 17 7M8 7h9v9" /> : <path d="M5 12h14M13 6l6 6-6 6" />}
-            </svg>
-          </a>
-        )}
-      </div>
+      </>
     )}
   </div>
 </dialog>
 
+<script>
+  // fecha a prévia pelo botão × ou clicando fora da janela (Esc já fecha sozinho)
+  document.querySelectorAll<HTMLDialogElement>('dialog.preview').forEach((dialog) => {
+    dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  });
+</script>
+
 <style>
   .preview {
-    width: min(40rem, calc(100% - 2rem));
-    max-height: min(88vh, 52rem);
+    /* mesmo tamanho para todos os projetos, com pouco ou muito conteúdo */
+    width: min(56rem, calc(100% - 2rem));
+    height: min(31rem, calc(100vh - 2rem));
+    max-height: none;
+    overflow: hidden;
     padding: 0;
     color: var(--text);
     background: var(--surface);
@@ -121,9 +151,46 @@ const titleId = `preview-title-${project.id}`;
     overflow: hidden;
   }
 
+  /* duas colunas: o projeto à esquerda, quem fez à direita; botões embaixo */
   .inner {
     position: relative;
-    padding: clamp(1.75rem, 4vw, 2.75rem);
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 2.5rem;
+    height: 100%;
+    padding: clamp(1.5rem, 3.5vw, 2.25rem);
+  }
+  /* se sobrar conteúdo, só essa parte rola por dentro; os botões ficam no rodapé */
+  .main,
+  .people {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .nothing {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    align-self: center;
+    max-width: 30rem;
+  }
+  .inner:focus {
+    outline: none;
+  }
+  .actions {
+    grid-column: 1 / -1;
+  }
+  @media (max-width: 760px) {
+    .inner {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto auto;
+      overflow-y: auto;
+    }
+    .main,
+    .people {
+      overflow: visible;
+    }
   }
   .close {
     position: absolute;
@@ -168,12 +235,12 @@ const titleId = `preview-title-${project.id}`;
   }
   h2 {
     margin: 0;
-    font-size: clamp(2.6rem, 6vw, 3.6rem);
+    font-size: clamp(2.4rem, 5vw, 3.2rem);
     font-weight: 400;
     line-height: 1;
   }
   .description {
-    margin: 1.25rem 0 0;
+    margin: 1rem 0 0;
     line-height: 1.7;
     color: var(--text-muted);
     text-wrap: pretty;
@@ -182,8 +249,8 @@ const titleId = `preview-title-${project.id}`;
   .meta {
     display: flex;
     gap: 2.5rem;
-    margin: 1.75rem 0 0;
-    padding-top: 1.25rem;
+    margin: 1.5rem 0 0;
+    padding-top: 1rem;
     border-top: 1px solid var(--border);
   }
   .meta dt {
@@ -197,10 +264,20 @@ const titleId = `preview-title-${project.id}`;
     margin: 0.25rem 0 0;
   }
 
+  /* coluna de contribuidores, separada por uma linha vertical */
   .people {
-    margin-top: 1.75rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--border);
+    align-self: start;
+    margin-top: 3rem;
+    padding-left: 2.5rem;
+    border-left: 1px solid var(--border);
+  }
+  @media (max-width: 760px) {
+    .people {
+      margin-top: 1.5rem;
+      padding: 1rem 0 0;
+      border-left: 0;
+      border-top: 1px solid var(--border);
+    }
   }
   h3 {
     margin: 0 0 0.75rem;
@@ -220,14 +297,14 @@ const titleId = `preview-title-${project.id}`;
   }
   .people li {
     display: grid;
-    grid-template-columns: 2.5rem 1fr auto;
+    grid-template-columns: 2rem 1fr auto;
     align-items: center;
-    gap: 0.9rem;
-    padding-block: 0.45rem;
+    gap: 0.75rem;
+    padding-block: 0.35rem;
   }
   .people img {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2rem;
+    height: 2rem;
     border-radius: 999px;
     background: var(--bg);
   }
@@ -253,8 +330,8 @@ const titleId = `preview-title-${project.id}`;
     align-items: center;
     justify-content: flex-end;
     gap: 1rem 1.75rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
     border-top: 1px solid var(--border);
   }
   .cta {

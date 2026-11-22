@@ -1,65 +1,104 @@
 ---
+// Articles na home: carrossel de cards pequenos com os artigos mais recentes.
+import Carousel from './Carousel.astro';
+import MiniCard from './MiniCard.astro';
+import { formatDate, publishedArticles, readingTime, type Article } from '../utils/articles';
 import { withBase } from '../utils/url';
-import { formatDate, publishedArticles } from '../utils/articles';
 
-const articles = (await publishedArticles()).slice(0, 3);
+const articles = (await publishedArticles()).slice(0, 8);
 ---
 
-<!-- Composição editorial (RI-005). PROVISÓRIO: layout criativo a refinar na Fase 3. -->
-<section class="section container articles" aria-labelledby="articles-title">
-  <h2 id="articles-title">Articles</h2>
+<section class="teaser" aria-labelledby="articles-title">
+  <div class="container head">
+    <h2 id="articles-title">Articles</h2>
+    <a class="all" href={withBase('/articles/')}>
+      See all
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6"></path>
+      </svg>
+    </a>
+  </div>
   {articles.length ? (
-    <ol class="list">
-      {articles.map((a) => (
-        <li>
-          <a href={withBase(`/articles/${a.id}/`)}>
-            <time datetime={a.data.date.toISOString()}>{formatDate(a.data.date)}</time>
-            <span class="title">{a.data.title}</span>
-          </a>
-        </li>
-      ))}
-    </ol>
+    <Carousel
+      items={articles}
+      label="Articles"
+      size="sm"
+      keyOf={(a: Article) => a.id}
+      nameOf={(a: Article) => a.data.title}
+    >
+      {(a: Article, clone: boolean) => (
+        <MiniCard
+          href={withBase(`/articles/${a.id}/`)}
+          eyebrow={`${formatDate(a.data.date, 'medium')} · ${readingTime(a)} min read`}
+          title={a.data.title}
+          text={a.data.description}
+          action="Read"
+          clone={clone}
+        />
+      )}
+    </Carousel>
   ) : (
-    <p class="empty-state">No articles published yet.</p>
+    <div class="container">
+      <p class="empty">
+        <span class="empty-title">Nothing published yet.</span>
+        The drafts exist, I promise. They’re just going through a very rigorous review.
+      </p>
+    </div>
   )}
-  <a class="more" href={withBase('/articles/')}>
-    See all articles →
-  </a>
 </section>
 
 <style>
-  .articles {
+  .teaser {
+    padding-bottom: clamp(4rem, 9vw, 6rem);
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    padding-top: clamp(4rem, 9vw, 6rem);
     border-top: 1px solid var(--border);
   }
-  .list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.5rem;
+  h2 {
+    margin: 0;
+    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.05;
   }
-  .list a {
-    display: grid;
-    grid-template-columns: 12rem 1fr;
-    gap: 1rem;
-    padding-block: 1rem;
-    border-bottom: 1px solid var(--border);
-    color: inherit;
+  .all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--text);
     text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
   }
-  time {
+  .all:hover {
+    border-color: var(--text);
+  }
+  svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .empty {
+    margin: 0;
+    padding: 1.75rem;
     color: var(--text-muted);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
   }
-  .title {
+  .empty-title {
+    display: block;
+    margin-bottom: 0.35rem;
     font-family: var(--font-serif);
-    font-size: 1.3rem;
-  }
-  .more {
-    display: inline-block;
-    margin-top: 1rem;
-  }
-  @media (max-width: 640px) {
-    .list a {
-      grid-template-columns: 1fr;
-      gap: 0.25rem;
-    }
+    font-size: 1.6rem;
+    color: var(--text);
   }
 </style>

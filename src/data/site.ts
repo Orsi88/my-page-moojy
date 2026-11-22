@@ -50,6 +50,8 @@ export type Project = {
   direct?: boolean;
   // true = card vazio só para preencher o carrossel (sem prévia, página nem link)
   placeholder?: boolean;
+  // true = tem página própria em src/pages/projects/<id>.astro (com a cara do projeto)
+  customPage?: boolean;
 };
 
 // Projetos da home, em duas seções. Para incluir um projeto, acrescente um item na lista certa.
@@ -84,6 +86,7 @@ export const projectGroups: {
         preview: null,
         repo: 'https://github.com/Orsi88/Moki',
         release: 'Orsi88/Moki',
+        customPage: true,
       },
       {
         id: 'nexo',
@@ -98,6 +101,7 @@ export const projectGroups: {
             'git clone https://github.com/Orsi88/nexo.git\ncd nexo/deploy/compose\ncp .env.example .env    # change every value\ndocker compose up -d --build',
           docs: 'https://github.com/Orsi88/nexo#instalação-self-hosted',
         },
+        customPage: true,
       },
     ],
   },

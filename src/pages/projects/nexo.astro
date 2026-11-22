@@ -1,0 +1,524 @@
+---
+// Página do Nexo, com a cara dele: noite cósmica, mascote flutuando e pipelines em órbita.
+// Imagens: public/projects/nexo/ (vindas do repositório do Nexo). Textos baseados no README.
+// Nunca linkar a instância privada (RNF-004 / CA-08): só o repositório e a instalação.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectPeople from '../../components/ProjectPeople.astro';
+import { allProjects, people } from '../../data/site';
+import { repoInfo } from '../../utils/github';
+import { withBase } from '../../utils/url';
+
+const project = allProjects.find((p) => p.id === 'nexo')!;
+const info = await repoInfo(project.repo!, people);
+
+const flow = [
+  {
+    step: 'Discover',
+    text: 'Find the pipelines that already exist in your CI and link them to projects.',
+  },
+  {
+    step: 'Configure',
+    text: 'Edit the pipeline file with a diff, save as a commit or a PR, or start from a template.',
+  },
+  {
+    step: 'Run',
+    text: 'Queue runs with a preview first. Exclusive resources and concurrency are handled for you.',
+  },
+  {
+    step: 'Monitor',
+    text: 'Follow runs in real time, cancel, re-run, and see which version was under test.',
+  },
+  {
+    step: 'Share',
+    text: 'Send results through public or members-only links, with expiry, revoking and masking.',
+  },
+];
+
+const features = [
+  {
+    title: 'Test reports',
+    text: 'JUnit and Playwright reports, the original artifacts kept, and an explicit note when a run has no report at all.',
+  },
+  {
+    title: 'Performance',
+    text: 'k6 summaries, thresholds that fail the run, and a performance panel for each pipeline.',
+  },
+  {
+    title: 'Teams & roles',
+    text: 'Local login, organizations, workspaces, invites, roles and audit, with data isolated per organization.',
+  },
+  {
+    title: 'Your own AI + MCP',
+    text: 'Bring Claude or any OpenAI-compatible API. MCP servers over HTTP, tools enabled one by one, and AI suggestions applied by a person.',
+  },
+  {
+    title: 'Email & retention',
+    text: 'Notifications through your own SMTP, and retention you configure instead of guessing.',
+  },
+  {
+    title: 'Pluggable providers',
+    text: 'Azure DevOps Pipelines and GitHub Actions today. A new provider is a connector package, not a rewrite.',
+  },
+];
+---
+
+<BaseLayout title="Nexo" description={project.description ?? undefined}>
+  <div class="nexo">
+    <!-- abertura: céu noturno -->
+    <section class="hero">
+      <div
+        class="sky"
+        aria-hidden="true"
+        style={`--night: url(${withBase('/projects/nexo/night.webp')})`}
+      ></div>
+      <div class="container hero-grid">
+        <div class="hero-text">
+          <a class="back" href={withBase('/#projects')}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 12H5M11 6l-6 6 6 6"></path>
+            </svg>
+            Projects
+          </a>
+          <p class="eyebrow">Self-hosted · open source</p>
+          <h1>
+            Every pipeline, <em>one calm place.</em>
+          </h1>
+          <p class="lead">
+            Nexo is a panel to discover, configure, run, monitor and share the results of your test
+            automation pipelines, whatever your company, test framework or CI provider.
+          </p>
+          <div class="actions">
+            <a class="cta" href="#install">
+              Run your own
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6"></path>
+              </svg>
+            </a>
+            <a class="secondary" href={project.repo!} target="_blank" rel="noopener noreferrer">
+              View on GitHub
+            </a>
+          </div>
+        </div>
+        <img
+          class="pixel mascot"
+          src={withBase('/projects/nexo/mascot.png')}
+          alt="Nexo’s mascot, a round pixel-art creature with a blue swirl"
+          width="512"
+          height="512"
+        />
+      </div>
+    </section>
+
+    <!-- provedores -->
+    <section class="container providers" aria-label="Supported CI providers">
+      <p>Plays well with</p>
+      <ul>
+        <li>Azure DevOps Pipelines</li>
+        <li>GitHub Actions</li>
+      </ul>
+    </section>
+
+    <!-- ciclo -->
+    <section class="container block" aria-labelledby="flow-title">
+      <p class="eyebrow">The whole orbit</p>
+      <h2 id="flow-title">
+        From “where is that pipeline?” <em>to “here’s the report.”</em>
+      </h2>
+      <ol class="flow">
+        {flow.map((f) => (
+          <li>
+            <span class="dot" aria-hidden="true" />
+            <h3>{f.step}</h3>
+            <p>{f.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- recursos -->
+    <section class="container block" aria-labelledby="features-title">
+      <p class="eyebrow">What’s inside</p>
+      <h2 id="features-title">
+        Quietly <em>thorough.</em>
+      </h2>
+      <ul class="features">
+        {features.map((f) => (
+          <li>
+            <h3>{f.title}</h3>
+            <p>{f.text}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="note">
+        Early days: the screens are still provisional while the interface design is being written.
+      </p>
+    </section>
+
+    <!-- instalação -->
+    <section class="container block install" id="install" aria-labelledby="install-title">
+      <div>
+        <p class="eyebrow">Run your own</p>
+        <h2 id="install-title">
+          No SaaS. <em>Your instance, your data.</em>
+        </h2>
+        <p class="note">
+          There is no hosted version. You clone the repository and run your own instance with Docker
+          Compose.
+        </p>
+      </div>
+      <div>
+        <pre set:text={project.selfHost!.commands} />
+        <p class="note small">
+          Panel on <code>localhost:8080</code>, reports on a separate origin at{' '}
+          <code>localhost:8081</code>.{' '}
+          <a href={project.selfHost!.docs} target="_blank" rel="noopener noreferrer">
+            Full installation guide
+          </a>
+        </p>
+      </div>
+    </section>
+
+    <!-- quem fez -->
+    {info && info.people.length > 0 && (
+      <section class="container block" aria-labelledby="people-title">
+        <p class="eyebrow">Made by</p>
+        <h2 id="people-title">Built under the stars</h2>
+        <ProjectPeople people={info.people} />
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  /* paleta do Nexo: noite, brilho azul e a lanterna dourada (igual nos dois temas) */
+  .nexo {
+    --n-bg: #0c0f2e;
+    --n-panel: #141a47;
+    --n-ink: #eef0ff;
+    --n-soft: #aab1e6;
+    --n-line: #262d6a;
+    --n-glow: #7ea6ff;
+    --n-gold: #ffd27a;
+    --people-border: var(--n-line);
+    color: var(--n-ink);
+    background: var(--n-bg);
+  }
+
+  .pixel {
+    image-rendering: pixelated;
+    height: auto;
+  }
+  svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+  }
+  em {
+    font-style: italic;
+    color: var(--n-gold);
+  }
+  .eyebrow {
+    margin: 0 0 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--n-soft);
+  }
+  h2 {
+    margin: 0 0 2.5rem;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.6rem;
+    font-weight: 400;
+  }
+  .block {
+    padding-block: clamp(4rem, 9vw, 6.5rem);
+    border-top: 1px solid var(--n-line);
+  }
+  .note {
+    max-width: 40rem;
+    margin: 0;
+    color: var(--n-soft);
+    line-height: 1.7;
+  }
+  .note a {
+    color: var(--n-ink);
+    text-underline-offset: 0.2em;
+  }
+  .block > .note {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+  }
+
+  /* botões */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.75rem;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1.5rem;
+    font-weight: 500;
+    color: var(--n-bg);
+    background: var(--n-ink);
+    border-radius: 999px;
+    text-decoration: none;
+    box-shadow: 0 0 0 rgb(126 166 255 / 0);
+    transition: box-shadow 250ms ease;
+  }
+  .cta:hover {
+    box-shadow: 0 0 28px rgb(126 166 255 / 0.65);
+  }
+  .secondary {
+    color: var(--n-ink);
+    text-decoration: none;
+    border-bottom: 1px solid rgb(238 240 255 / 0.35);
+    padding-bottom: 2px;
+  }
+  .secondary:hover {
+    border-color: var(--n-ink);
+  }
+
+  /* abertura */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(2.5rem, 6vw, 4rem) clamp(5rem, 12vw, 9rem);
+  }
+  .sky {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        90deg,
+        rgb(12 15 46 / 0.92) 0%,
+        rgb(12 15 46 / 0.55) 45%,
+        rgb(12 15 46 / 0) 75%
+      ),
+      linear-gradient(180deg, rgb(12 15 46 / 0) 60%, var(--n-bg) 100%),
+      var(--night) center / cover no-repeat;
+    image-rendering: pixelated;
+  }
+  .hero-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.9rem;
+    color: var(--n-soft);
+    text-decoration: none;
+  }
+  .back:hover {
+    color: var(--n-ink);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(3rem, 7vw, 5.8rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    text-shadow: 0 2px 24px rgb(12 15 46 / 0.6);
+  }
+  .lead {
+    max-width: 34rem;
+    margin: 1.75rem 0 2.5rem;
+    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+    line-height: 1.7;
+    color: var(--n-soft);
+  }
+  .mascot {
+    width: 100%;
+    max-width: 22rem;
+    justify-self: center;
+    filter: drop-shadow(0 0 40px rgb(126 166 255 / 0.45));
+    animation: float 5s ease-in-out infinite;
+  }
+  @keyframes float {
+    50% {
+      transform: translateY(-14px) rotate(-2deg);
+    }
+  }
+
+  /* provedores */
+  .providers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 2rem;
+    padding-block: 0 3rem;
+  }
+  .providers p {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--n-soft);
+  }
+  .providers ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .providers li {
+    padding: 0.55rem 1.1rem;
+    background: var(--n-panel);
+    border: 1px solid var(--n-line);
+    border-radius: 999px;
+  }
+
+  /* ciclo: uma órbita com cinco paradas */
+  .flow {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .flow::before {
+    content: '';
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, var(--n-glow), var(--n-gold));
+    opacity: 0.6;
+  }
+  .flow li {
+    position: relative;
+    padding-top: 2.5rem;
+  }
+  .dot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1.1rem;
+    height: 1.1rem;
+    background: var(--n-glow);
+    border: 3px solid var(--n-bg);
+    border-radius: 999px;
+    box-shadow: 0 0 14px var(--n-glow);
+  }
+  .flow li:last-child .dot {
+    background: var(--n-gold);
+    box-shadow: 0 0 14px var(--n-gold);
+  }
+  .flow p {
+    margin: 0;
+    color: var(--n-soft);
+    line-height: 1.6;
+  }
+
+  /* recursos */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .features li {
+    padding: 1.75rem;
+    background: var(--n-panel);
+    border: 1px solid var(--n-line);
+    border-radius: calc(var(--radius) + 4px);
+    transition:
+      border-color 250ms ease,
+      box-shadow 250ms ease;
+  }
+  .features li:hover {
+    border-color: var(--n-glow);
+    box-shadow: 0 0 30px -8px rgb(126 166 255 / 0.5);
+  }
+  .features p {
+    margin: 0;
+    color: var(--n-soft);
+    line-height: 1.65;
+  }
+
+  /* instalação */
+  .install {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: start;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  pre {
+    margin: 0 0 1.25rem;
+    padding: 1.5rem;
+    overflow-x: auto;
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--n-ink);
+    background: #070921;
+    border: 1px solid var(--n-line);
+    border-radius: var(--radius);
+  }
+  code {
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 0.9em;
+  }
+  .small {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 900px) {
+    .flow {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    .flow::before {
+      top: 0.55rem;
+      bottom: 0;
+      left: 0.55rem;
+      right: auto;
+      width: 1px;
+      height: auto;
+      background: linear-gradient(180deg, var(--n-glow), var(--n-gold));
+    }
+    .flow li {
+      padding: 0 0 2rem 2.5rem;
+    }
+  }
+  @media (max-width: 820px) {
+    .hero-grid,
+    .install {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .mascot {
+      order: -1;
+      max-width: 12rem;
+    }
+  }
+</style>

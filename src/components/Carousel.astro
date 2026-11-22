@@ -1,0 +1,264 @@
+---
+// Carrossel infinito com o card em evidência sempre no centro (usado em Projects,
+// Articles e Library). Uso:
+//   <Carousel items={lista} label="..." keyOf={...} nameOf={...}>
+//     {(item, clone) => <MeuCard item={item} clone={clone} />}
+//   </Carousel>
+// `clone` = cópia que preenche as pontas (fica fora do teclado e dos leitores de tela).
+// Clique no card lateral: traz para o centro. Clique no card do centro: abre a prévia
+// (se `previewOf` devolver um id de <dialog>) ou segue o link do card.
+interface Props {
+  items: any[];
+  label: string;
+  size?: 'lg' | 'sm';
+  keyOf: (item: any) => string;
+  nameOf: (item: any) => string;
+  previewOf?: (item: any) => string | undefined;
+}
+const { items, label, size = 'lg', keyOf, nameOf, previewOf } = Astro.props;
+
+// a lista aparece 3 vezes; só a do meio é "de verdade"
+const copies = items.length > 1 ? [0, 1, 2] : [1];
+const slides: { key: string; name: string; preview?: string; clone: boolean; html: string }[] = [];
+for (const copy of copies) {
+  for (const item of items) {
+    const clone = copy !== 1;
+    slides.push({
+      key: `${copy}-${keyOf(item)}`,
+      name: nameOf(item),
+      preview: previewOf?.(item),
+      clone,
+      html: await Astro.slots.render('default', [item, clone]),
+    });
+  }
+}
+---
+
+<div
+  class:list={['carousel', size]}
+  data-carousel
+  aria-roledescription="carousel"
+  aria-label={label}
+>
+  <ul class="carousel-track">
+    {slides.map((s) => (
+      <li
+        class="carousel-slide"
+        aria-roledescription={s.clone ? undefined : 'slide'}
+        aria-label={s.clone ? undefined : s.name}
+        aria-hidden={s.clone ? 'true' : undefined}
+        data-clone={s.clone ? '' : undefined}
+        data-preview={s.preview}
+        set:html={s.html}
+      />
+    ))}
+  </ul>
+  {items.length > 1 && (
+    <>
+      <button class="carousel-arrow prev" type="button" data-prev aria-label={`Previous: ${label}`}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 12H5M11 6l-6 6 6 6" />
+        </svg>
+      </button>
+      <button class="carousel-arrow next" type="button" data-next aria-label={`Next: ${label}`}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </button>
+    </>
+  )}
+</div>
+
+<script>
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('.carousel-track');
+    if (!track) return;
+    const slides = [...track.querySelectorAll<HTMLElement>('.carousel-slide')];
+    const n = slides.filter((slide) => !slide.hasAttribute('data-clone')).length;
+    const looped = slides.length > n;
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = root.querySelector<HTMLButtonElement>('[data-next]');
+    // começa pelo card do meio da lista "de verdade"
+    let active = (looped ? n : 0) + Math.floor((n - 1) / 2);
+
+    // rola o trilho até o card ficar no centro
+    const center = (i: number, smooth = true) => {
+      const slide = slides[Math.max(0, Math.min(slides.length - 1, i))];
+      track.scrollTo({
+        left: slide.offsetLeft - (track.clientWidth - slide.offsetWidth) / 2,
+        behavior: smooth && !reduceMotion.matches ? 'smooth' : 'auto',
+      });
+    };
+
+    // o card mais perto do centro é o que está em evidência
+    const update = () => {
+      const middle = track.scrollLeft + track.clientWidth / 2;
+      let best = 0;
+      let bestDistance = Infinity;
+      slides.forEach((slide, i) => {
+        const distance = Math.abs(slide.offsetLeft + slide.offsetWidth / 2 - middle);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = i;
+        }
+      });
+      active = best;
+      slides.forEach((slide, i) => slide.toggleAttribute('data-active', i === best));
+    };
+
+    // quando a rolagem para numa cópia, pula (sem animação) para o mesmo card na lista
+    // do meio: visualmente nada muda e sempre há cards dos dois lados
+    const wrap = () => {
+      if (!looped || (active >= n && active < 2 * n)) return;
+      const target = active < n ? active + n : active - n;
+      track.scrollBy({
+        left: slides[target].offsetLeft - slides[active].offsetLeft,
+        behavior: 'instant',
+      });
+      update();
+    };
+
+    let frame = 0;
+    let settle = 0;
+    track.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(update);
+        clearTimeout(settle);
+        settle = window.setTimeout(wrap, 140);
+      },
+      { passive: true },
+    );
+    prev?.addEventListener('click', () => center(active - 1));
+    next?.addEventListener('click', () => center(active + 1));
+
+    slides.forEach((slide, i) => {
+      slide.addEventListener('click', (event) => {
+        if (i !== active) {
+          event.preventDefault();
+          return center(i);
+        }
+        const preview = slide.dataset.preview;
+        if (preview) {
+          event.preventDefault();
+          document.querySelector<HTMLDialogElement>(`#${preview}`)?.showModal();
+        }
+      });
+      // navegando pelo teclado, o card focado vai para o centro
+      slide.addEventListener('focusin', () => center(i));
+    });
+
+    center(active, false);
+    update();
+    new ResizeObserver(() => center(active, false)).observe(track);
+  });
+</script>
+
+<style>
+  .carousel {
+    --card-w: clamp(18rem, 50vw, 40rem);
+    position: relative;
+  }
+  .carousel.sm {
+    --card-w: clamp(15rem, 27vw, 21rem);
+  }
+
+  /* trilho: largura toda da tela; o espaço nas pontas deixa os cards chegarem ao centro */
+  .carousel-track {
+    display: flex;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    margin: 0;
+    padding: 0.5rem calc(50% - var(--card-w) / 2) 1rem;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+  .sm .carousel-track {
+    gap: clamp(0.75rem, 1.8vw, 1.25rem);
+  }
+  .carousel-slide {
+    flex: 0 0 var(--card-w);
+    scroll-snap-align: center;
+    opacity: 0.45;
+    transform: scale(0.94);
+    transition:
+      opacity 350ms ease,
+      transform 350ms ease;
+  }
+  .carousel-slide[data-active] {
+    opacity: 1;
+    transform: none;
+  }
+  .carousel-slide:not([data-active]) > :global(*) {
+    cursor: pointer;
+  }
+
+  /* setas nas laterais do card em evidência */
+  .carousel-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.25);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: border-color 200ms ease;
+  }
+  .sm .carousel-arrow {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  /* nos cards pequenos as setas ficam do lado de fora, sem cobrir o texto */
+  .sm .carousel-arrow.prev {
+    left: calc(50% - var(--card-w) / 2 - 3.25rem);
+  }
+  .sm .carousel-arrow.next {
+    right: calc(50% - var(--card-w) / 2 - 3.25rem);
+  }
+  .carousel-arrow.prev {
+    left: calc(50% - var(--card-w) / 2 - 1.5rem);
+  }
+  .carousel-arrow.next {
+    right: calc(50% - var(--card-w) / 2 - 1.5rem);
+  }
+  .carousel-arrow:hover {
+    border-color: var(--text);
+  }
+  .carousel-arrow svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  @media (max-width: 700px) {
+    .carousel {
+      --card-w: 86vw;
+    }
+    .carousel.sm {
+      --card-w: 72vw;
+    }
+    .carousel-arrow {
+      display: none;
+    }
+  }
+</style>
