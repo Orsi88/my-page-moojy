@@ -99,7 +99,9 @@ const { intro } = site;
     color: var(--text-muted);
   }
   .actions {
-    flex: 0 0 auto;
+    /* pode encolher: em telas estreitas os botões quebram linha em vez de passar da borda */
+    flex: 0 1 auto;
+    min-width: 0;
     display: flex;
     flex-wrap: wrap;
     gap: 1rem 1.75rem;
