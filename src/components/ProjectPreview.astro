@@ -1,0 +1,281 @@
+---
+// Janela de prévia de um projeto (abre ao clicar no card em evidência do carrossel).
+// Mostra tipo, descrição, linguagem, licença, contribuidores e o botão de acesso.
+import { accessLabel, people, type Project } from '../data/site';
+import { repoInfo } from '../utils/github';
+import { withBase } from '../utils/url';
+
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const info = project.repo ? await repoInfo(project.repo, people) : null;
+
+// para onde o botão principal leva
+const external = project.direct ? (project.appUrl ?? project.repo) : null;
+const accessHref = external ?? withBase(`/projects/${project.id}/`);
+const showAccess = Boolean(project.direct ? project.appUrl : project.description);
+const titleId = `preview-title-${project.id}`;
+---
+
+<dialog class="preview" id={`preview-${project.id}`} aria-labelledby={titleId}>
+  <div class="inner">
+    <button class="close" type="button" data-close aria-label="Close preview">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 6l12 12M18 6 6 18"></path>
+      </svg>
+    </button>
+
+    {project.kind && <p class="eyebrow">{project.kind}</p>}
+    <h2 id={titleId}>{project.name}</h2>
+    <p class="description">{project.description ?? 'Details soon. It’s on the list.'}</p>
+
+    {info && (info.language || info.license) && (
+      <dl class="meta">
+        {info.language && (
+          <div>
+            <dt>Language</dt>
+            <dd>{info.language}</dd>
+          </div>
+        )}
+        {info.license && (
+          <div>
+            <dt>License</dt>
+            <dd>{info.license}</dd>
+          </div>
+        )}
+      </dl>
+    )}
+
+    {info && info.people.length > 0 && (
+      <section class="people" aria-label="Contributors">
+        <h3>{info.people.length === 1 ? 'Made by' : 'Contributors'}</h3>
+        <ul>
+          {info.people.map((person) => (
+            <li>
+              <img src={person.avatar} alt="" width="40" height="40" loading="lazy" />
+              <span class="name">{person.name}</span>
+              <a href={person.link} target="_blank" rel="noopener noreferrer">
+                {person.linkLabel}
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 17 17 7M8 7h9v9" />
+                </svg>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {(showAccess || project.repo) && (
+      <div class="actions">
+        {project.repo && (
+          <a class="secondary" href={project.repo} target="_blank" rel="noopener noreferrer">
+            View on GitHub
+          </a>
+        )}
+        {showAccess && (
+          <a
+            class="cta"
+            href={accessHref}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+          >
+            {accessLabel(project)}
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {external ? <path d="M7 17 17 7M8 7h9v9" /> : <path d="M5 12h14M13 6l6 6-6 6" />}
+            </svg>
+          </a>
+        )}
+      </div>
+    )}
+  </div>
+</dialog>
+
+<style>
+  .preview {
+    width: min(40rem, calc(100% - 2rem));
+    max-height: min(88vh, 52rem);
+    padding: 0;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) + 6px);
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.35);
+  }
+  .preview[open] {
+    animation: preview-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .preview::backdrop {
+    background: rgb(17 21 31 / 0.45);
+    backdrop-filter: blur(3px);
+  }
+  @keyframes preview-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+  }
+  /* trava a rolagem da página com a prévia aberta */
+  :global(html:has(dialog.preview[open])) {
+    overflow: hidden;
+  }
+
+  .inner {
+    position: relative;
+    padding: clamp(1.75rem, 4vw, 2.75rem);
+  }
+  .close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+      color 200ms ease,
+      border-color 200ms ease;
+  }
+  .close:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+  svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+  }
+
+  .eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  h2 {
+    margin: 0;
+    font-size: clamp(2.6rem, 6vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1;
+  }
+  .description {
+    margin: 1.25rem 0 0;
+    line-height: 1.7;
+    color: var(--text-muted);
+    text-wrap: pretty;
+  }
+
+  .meta {
+    display: flex;
+    gap: 2.5rem;
+    margin: 1.75rem 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .meta dt {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .meta dd {
+    margin: 0.25rem 0 0;
+  }
+
+  .people {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  h3 {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .people ul {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .people li {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding-block: 0.45rem;
+  }
+  .people img {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    background: var(--bg);
+  }
+  .name {
+    font-weight: 500;
+  }
+  .people a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 200ms ease;
+  }
+  .people a:hover {
+    color: var(--text);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem 1.75rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.8rem 1.4rem;
+    font-weight: 500;
+    color: var(--bg);
+    background: var(--text);
+    border-radius: 999px;
+    text-decoration: none;
+  }
+  .secondary {
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: border-color 200ms ease;
+  }
+  .secondary:hover {
+    border-color: var(--text);
+  }
+</style>

@@ -48,6 +48,8 @@ export type Project = {
   // true = sem página própria: o card abre direto o app (appUrl) ou, enquanto ele
   // não estiver no ar, o repositório.
   direct?: boolean;
+  // true = card vazio só para preencher o carrossel (sem prévia, página nem link)
+  placeholder?: boolean;
 };
 
 // Projetos da home, em duas seções. Para incluir um projeto, acrescente um item na lista certa.
@@ -113,11 +115,36 @@ export const projectGroups: {
         repo: null,
       },
       { id: 'convia', name: 'Convia', kind: null, description: null, preview: null, repo: null },
+      {
+        id: 'in-progress',
+        name: 'In progress',
+        kind: null,
+        description: null,
+        preview: null,
+        repo: null,
+        placeholder: true,
+      },
     ],
   },
 ];
 
 export const allProjects = projectGroups.flatMap((g) => g.items);
+
+// Contribuidores vêm do GitHub automaticamente. Aqui dá para completar ou corrigir
+// nome e LinkedIn de alguém, pelo usuário do GitHub (vale para todos os projetos).
+export const people: Record<string, { name?: string; linkedin?: string }> = {
+  Orsi88: { name: 'Júlia Orsi', linkedin: 'https://www.linkedin.com/in/j%C3%BAlia-orsi/' },
+};
+
+// Texto do botão principal da prévia, conforme o tipo de projeto.
+export const accessLabel = (p: Project) =>
+  p.direct && p.appUrl
+    ? `Open ${p.name}`
+    : p.release
+      ? 'Download'
+      : p.selfHost
+        ? 'Run your own'
+        : 'View project';
 
 // Links públicos do rodapé. `href: null` = pendente (o link não aparece até ser preenchido).
 export type PublicLink = { label: string; href: string | null; icon?: 'linkedin' };

@@ -7,53 +7,76 @@ import { withBase } from '../utils/url';
 
 interface Props {
   project: Project;
+  clone?: boolean; // cópia do carrossel infinito: fora da navegação por teclado
 }
-const { project } = Astro.props;
+const { project, clone = false } = Astro.props;
 
 const external = project.direct ? (project.appUrl ?? project.repo) : null;
 const href = external ?? withBase(`/projects/${project.id}/`);
-const action = !project.direct
-  ? 'View project'
-  : project.appUrl
-    ? `Open ${project.name}`
-    : 'View on GitHub';
+// o clique abre a prévia do projeto (ProjectsGrid); o link só vale sem JavaScript
+const action = 'View details';
 ---
 
-<a
-  class="card"
-  href={href}
-  target={external ? '_blank' : undefined}
-  rel={external ? 'noopener noreferrer' : undefined}
->
-  <div class="preview">
-    {project.preview ? (
-      <img
-        src={withBase(project.preview)}
-        alt={`${project.name} preview`}
-        width="640"
-        height="400"
-        loading="lazy"
-      />
-    ) : (
-      <span class="placeholder" aria-hidden="true">
-        {project.name}
+{project.placeholder ? (
+  <div class="card blank" aria-label="Project in progress">
+    <span class="blank-label">In progress</span>
+  </div>
+) : (
+  <a
+    class="card"
+    href={href}
+    tabindex={clone ? -1 : undefined}
+    target={external ? '_blank' : undefined}
+    rel={external ? 'noopener noreferrer' : undefined}
+  >
+    <div class="preview">
+      {project.preview ? (
+        <img
+          src={withBase(project.preview)}
+          alt={`${project.name} preview`}
+          width="640"
+          height="400"
+          loading="lazy"
+        />
+      ) : (
+        <span class="placeholder" aria-hidden="true">
+          {project.name}
+        </span>
+      )}
+    </div>
+    <div class="body">
+      {project.kind && <span class="kind">{project.kind}</span>}
+      <h3>{project.name}</h3>
+      <p>{project.description ?? 'Details soon.'}</p>
+      <span class="more">
+        {action}
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
       </span>
-    )}
-  </div>
-  <div class="body">
-    {project.kind && <span class="kind">{project.kind}</span>}
-    <h3>{project.name}</h3>
-    <p>{project.description ?? 'Details soon.'}</p>
-    <span class="more">
-      {action}
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        {external ? <path d="M7 17 17 7M8 7h9v9" /> : <path d="M5 12h14M13 6l6 6-6 6" />}
-      </svg>
-    </span>
-  </div>
-</a>
+    </div>
+  </a>
+)}
 
 <style>
+  /* card vazio que só preenche o carrossel */
+  .card.blank {
+    display: grid;
+    place-items: center;
+    min-height: 100%;
+    background: transparent;
+    border-style: dashed;
+  }
+  .card.blank:hover {
+    transform: none;
+    border-color: var(--border);
+  }
+  .blank-label {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-style: italic;
+    color: var(--text-muted);
+  }
   .card {
     display: flex;
     flex-direction: column;
@@ -73,7 +96,7 @@ const action = !project.direct
     transform: translateY(-2px);
   }
   .preview {
-    aspect-ratio: 16 / 10; /* dimensões fixas evitam CLS (CA-12) */
+    aspect-ratio: 21 / 8; /* formato panorâmico; dimensões fixas evitam CLS (CA-12) */
     display: grid;
     place-items: center;
     background: var(--bg);
@@ -96,7 +119,7 @@ const action = !project.direct
     flex-direction: column;
     gap: 0.5rem;
     flex: 1;
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem 1.4rem;
   }
   .kind {
     font-size: 0.7rem;
@@ -111,17 +134,22 @@ const action = !project.direct
     font-weight: 400;
     line-height: 1.1;
   }
+  /* no card, só um resumo: a descrição completa fica na prévia */
   p {
     flex: 1;
     margin: 0;
     color: var(--text-muted);
     line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .more {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
     font-size: 0.9rem;
     font-weight: 500;
   }
