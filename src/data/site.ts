@@ -72,7 +72,7 @@ export const projectGroups: {
         kind: 'Web app',
         description:
           'Generates and validates test data, files and documents. Everything runs in your browser, so nothing leaves your machine.',
-        preview: null,
+        preview: '/projects/toki/preview.webp',
         repo: 'https://github.com/Orsi88/Toki',
         appUrl: 'https://toki.moojy.com.br',
         direct: true, // o Toki é a própria página dele
@@ -83,7 +83,7 @@ export const projectGroups: {
         kind: 'Desktop app · VS Code extension',
         description:
           'A local workspace for AI-assisted work. It turns a folder into a project with context, notes, activities and agents, and works with the AI you already use. No account, no server, no lock-in.',
-        preview: null,
+        preview: '/projects/moki/preview.webp',
         repo: 'https://github.com/Orsi88/Moki',
         release: 'Orsi88/Moki',
         customPage: true,
@@ -94,7 +94,7 @@ export const projectGroups: {
         kind: 'Self-hosted',
         description:
           'An open source panel to discover, configure, run, monitor and share test automation pipelines on Azure DevOps and GitHub Actions. There is no hosted version: you run your own instance.',
-        preview: null,
+        preview: '/projects/nexo/preview.webp',
         repo: 'https://github.com/Orsi88/nexo',
         selfHost: {
           commands:

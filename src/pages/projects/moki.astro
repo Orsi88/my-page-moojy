@@ -2,6 +2,7 @@
 // Página do Moki, com a cara dele: aconchegante, cor de café e um gato que julga você.
 // Imagens: public/projects/moki/ (vindas do repositório do Moki). Textos baseados no README.
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionNav from '../../components/SectionNav.astro';
 import ProjectPeople from '../../components/ProjectPeople.astro';
 import { allProjects, people } from '../../data/site';
 import { formatDate } from '../../utils/articles';
@@ -61,6 +62,17 @@ const ais = [
   'a plain web chat',
 ];
 
+const hasPeople = Boolean(info && info.people.length > 0);
+const sections = [
+  { id: 'top', label: 'Moki' },
+  { id: 'features', label: 'What it does' },
+  { id: 'works', label: 'Works with' },
+  { id: 'how', label: 'How it works' },
+  { id: 'download', label: 'Download' },
+  ...(hasPeople ? [{ id: 'people', label: 'Contributors' }] : []),
+  { id: 'outro', label: 'Get it' },
+];
+
 const steps = [
   'Choose or create a workspace.',
   'Create a project, or open an existing folder as one.',
@@ -73,7 +85,7 @@ const steps = [
 <BaseLayout title="Moki" description={project.description ?? undefined}>
   <div class="moki">
     <!-- abertura -->
-    <section class="hero">
+    <section class="hero" id="top">
       <div class="container hero-grid">
         <div class="hero-text">
           <a class="back" href={withBase('/#projects')}>
@@ -82,14 +94,13 @@ const steps = [
             </svg>
             Projects
           </a>
-          <p class="eyebrow">{project.kind}</p>
+          <p class="eyebrow">{project.kind} · Open source</p>
           <h1>
             Organize the chaos. <em>The cat will judge you anyway.</em>
           </h1>
           <p class="lead">
-            Moki is a local workspace for AI-assisted work. It turns a folder into a living project
-            with context, notes, reusable activities, skills and agents, and a record of what has
-            been delivered.
+            Moki turns a folder into a living project for AI-assisted work, with context, notes
+            and agents in one place.
           </p>
           <div class="actions">
             <a class="cta" href={windows?.url ?? releasesPage}>
@@ -102,12 +113,6 @@ const steps = [
               View on GitHub
             </a>
           </div>
-          {release && (
-            <p class="version">
-              {release.version}
-              {windows && ` · ${windows.size}`} · free and open source
-            </p>
-          )}
         </div>
         <img
           class="pixel hero-cat"
@@ -117,26 +122,25 @@ const steps = [
           height="480"
         />
       </div>
-    </section>
-
-    <!-- as três promessas -->
-    <section class="promises container" aria-label="What Moki doesn’t do">
+      <!-- as três promessas -->
+      <div class="promises container" role="group" aria-label="What Moki doesn’t do">
       <div>
         <p class="big">No account.</p>
-        <p>Nothing to sign up for, nothing to log into.</p>
+        <p>Nothing to sign up for.</p>
       </div>
       <div>
         <p class="big">No server.</p>
-        <p>Your projects live on your machine, in Documents\Moki.</p>
+        <p>Everything stays on your machine.</p>
       </div>
       <div>
         <p class="big">No lock-in.</p>
-        <p>Plain files, and you choose the AI. Leave whenever.</p>
+          <p>Plain files, any AI.</p>
+        </div>
       </div>
     </section>
 
     <!-- o que faz -->
-    <section class="container block" aria-labelledby="features-title">
+    <section class="container block screen" id="features" aria-labelledby="features-title">
       <p class="eyebrow">What it does</p>
       <h2 id="features-title">
         A whole desk, <em>minus the mess.</em>
@@ -160,23 +164,26 @@ const steps = [
     </section>
 
     <!-- funciona com -->
-    <section class="container block works" aria-labelledby="ai-title">
-      <h2 id="ai-title">
-        Works with the AI <em>you already use.</em>
-      </h2>
+    <section class="container block split screen works" id="works" aria-labelledby="ai-title">
+      <div>
+        <p class="eyebrow">Works with</p>
+        <h2 id="ai-title">
+          Works with the AI <em>you already use.</em>
+        </h2>
+        <p class="note">
+          You pick the tool. Moki prepares the request, keeps the project tidy and lets you continue
+          later, even in another tool.
+        </p>
+      </div>
       <ul class="chips">
         {ais.map((ai) => (
           <li>{ai}</li>
         ))}
       </ul>
-      <p class="note">
-        You pick the tool. Moki prepares the request, keeps the project tidy and lets you continue
-        later, even in another tool.
-      </p>
     </section>
 
     <!-- como funciona -->
-    <section class="container block how" aria-labelledby="how-title">
+    <section class="container block how screen" id="how" aria-labelledby="how-title">
       <div>
         <p class="eyebrow">How it works</p>
         <h2 id="how-title">
@@ -199,11 +206,20 @@ const steps = [
     </section>
 
     <!-- downloads -->
-    <section class="container block" id="download" aria-labelledby="download-title">
-      <p class="eyebrow">Download</p>
-      <h2 id="download-title">Get Moki</h2>
+    <section class="container block split screen" id="download" aria-labelledby="download-title">
       {release && release.downloads.length ? (
         <>
+          <div>
+            <p class="eyebrow">Download</p>
+            <h2 id="download-title">Get Moki</h2>
+            <p class="note">
+              Version {release.version}, released {formatDate(release.date)}.{' '}
+              <a href={release.url} target="_blank" rel="noopener noreferrer">
+                Release notes
+              </a>
+              . A newer installer updates the app without touching your workspaces.
+            </p>
+          </div>
           <ul class="downloads">
             {[windows, vsix].filter(Boolean).map((d) => (
               <li>
@@ -219,28 +235,25 @@ const steps = [
               </li>
             ))}
           </ul>
-          <p class="note">
-            Version {release.version}, released {formatDate(release.date)}.{' '}
-            <a href={release.url} target="_blank" rel="noopener noreferrer">
-              Release notes
-            </a>
-            . A newer installer updates the app without touching your workspaces.
-          </p>
         </>
       ) : (
-        <p class="note">
+        <div>
+          <p class="eyebrow">Download</p>
+          <h2 id="download-title">Get Moki</h2>
+          <p class="note">
           Downloads live on{' '}
           <a href={releasesPage} target="_blank" rel="noopener noreferrer">
             GitHub Releases
           </a>
           .
-        </p>
+          </p>
+        </div>
       )}
     </section>
 
     <!-- quem fez -->
     {info && info.people.length > 0 && (
-      <section class="container block" aria-labelledby="people-title">
+      <section class="container block screen" id="people" aria-labelledby="people-title">
         <p class="eyebrow">Contributors</p>
         <h2 id="people-title">The humans behind the cat</h2>
         <ProjectPeople people={info.people} />
@@ -248,7 +261,7 @@ const steps = [
     )}
 
     <!-- despedida -->
-    <section class="outro">
+    <section class="outro screen" id="outro">
       <div class="container outro-grid">
         <img
           class="pixel"
@@ -271,6 +284,8 @@ const steps = [
         </div>
       </div>
     </section>
+
+    <SectionNav sections={sections} />
   </div>
 </BaseLayout>
 
@@ -285,6 +300,9 @@ const steps = [
     --m-pink: #e79a9a;
     --m-coffee: #8a5a3b;
     --people-border: var(--m-line);
+    --nav-ink: var(--m-coffee);
+    --nav-soft: var(--m-soft);
+    --nav-bg: var(--m-paper);
     color: var(--m-ink);
     background: var(--m-bg);
   }
@@ -296,6 +314,14 @@ const steps = [
     --m-line: #3c3029;
     --m-pink: #e8a3a3;
     --m-coffee: #d29a6e;
+  }
+
+  /* barra de rolagem fina, na paleta do Moki */
+  :global(html:has(.moki)) {
+    scrollbar-color: #d9c7ad transparent;
+  }
+  :global(html[data-theme='dark']:has(.moki)) {
+    scrollbar-color: #4a3b32 transparent;
   }
 
   .pixel {
@@ -317,23 +343,35 @@ const steps = [
     color: var(--m-coffee);
   }
   .eyebrow {
-    margin: 0 0 1.25rem;
-    font-size: 0.75rem;
+    margin: 0 0 0.9rem;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--m-soft);
   }
   h2 {
-    margin: 0 0 2.5rem;
-    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    margin: 0 0 1.75rem;
+    font-size: clamp(2rem, 4vw, 3.1rem);
     font-weight: 400;
     line-height: 1.05;
     text-wrap: balance;
   }
   .block {
-    padding-block: clamp(4rem, 9vw, 6.5rem);
+    padding-block: clamp(2.75rem, 5.5vw, 4.25rem);
     border-top: 1px solid var(--m-line);
+  }
+  /* cada seção ocupa a tela inteira, com o conteúdo centralizado */
+  .screen {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    padding-block: 4rem;
+  }
+  /* a última seção divide a tela com o rodapé */
+  .moki > section:last-of-type {
+    min-height: calc(100svh - 6rem);
   }
   .note {
     max-width: 40rem;
@@ -356,7 +394,7 @@ const steps = [
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.9rem 1.5rem;
+    padding: 0.75rem 1.3rem;
     font-weight: 500;
     color: var(--m-paper);
     background: var(--m-ink);
@@ -383,11 +421,17 @@ const steps = [
 
   /* abertura */
   .hero {
-    padding-block: clamp(2.5rem, 6vw, 4rem) clamp(3rem, 7vw, 5rem);
+    position: relative;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-height: calc(100svh - 4.75rem);
+    padding-block: clamp(1.5rem, 3.5vw, 2.5rem) 3rem;
   }
   .hero-grid {
+    align-self: center;
     display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    width: min(100% - 2 * var(--space), var(--max-w));
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     align-items: center;
     gap: clamp(2rem, 5vw, 4rem);
   }
@@ -395,8 +439,8 @@ const steps = [
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 2.5rem;
-    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
     color: var(--m-soft);
     text-decoration: none;
   }
@@ -405,27 +449,31 @@ const steps = [
   }
   h1 {
     margin: 0;
-    font-size: clamp(2.8rem, 6.5vw, 5.4rem);
+    font-size: clamp(2.2rem, 3.9vw, 3.6rem);
     font-weight: 400;
     line-height: 1;
     letter-spacing: -0.015em;
     text-wrap: balance;
   }
+  /* cada frase do título na sua linha */
+  h1 em {
+    display: block;
+  }
+  @media (min-width: 821px) {
+    h1 em {
+      white-space: nowrap;
+    }
+  }
   .lead {
     max-width: 34rem;
-    margin: 1.75rem 0 2.5rem;
-    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
-    line-height: 1.7;
-    color: var(--m-soft);
-  }
-  .version {
-    margin: 1.25rem 0 0;
-    font-size: 0.85rem;
+    margin: 1.25rem 0 1.75rem;
+    font-size: clamp(1rem, 1.25vw, 1.1rem);
+    line-height: 1.6;
     color: var(--m-soft);
   }
   .hero-cat {
     width: 100%;
-    max-width: 34rem;
+    max-width: 25rem;
     justify-self: center;
   }
 
@@ -433,8 +481,16 @@ const steps = [
   .promises {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2rem;
-    padding-block: 2.5rem 3.5rem;
+    text-align: center;
+    margin-top: 2rem;
+    padding-block: 1.75rem 0;
+    border-top: 1px solid var(--m-line);
+  }
+  .promises > div {
+    padding-inline: 1.5rem;
+  }
+  .promises > div + div {
+    border-left: 1px solid var(--m-line);
   }
   .promises p {
     margin: 0;
@@ -443,7 +499,7 @@ const steps = [
   .promises .big {
     margin-bottom: 0.4rem;
     font-family: var(--font-serif);
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
     line-height: 1;
     color: var(--m-ink);
   }
@@ -458,7 +514,7 @@ const steps = [
     list-style: none;
   }
   .features li {
-    padding: 1.75rem;
+    padding: 1.4rem;
     background: var(--m-paper);
     border: 1px solid var(--m-line);
     border-radius: calc(var(--radius) + 4px);
@@ -471,30 +527,41 @@ const steps = [
     transform: rotate(-6deg);
   }
   .features img {
-    width: 4.5rem;
-    margin-bottom: 1rem;
+    width: 3.5rem;
+    margin-bottom: 0.75rem;
     transition: transform 250ms ease;
   }
   h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.6rem;
+    margin: 0 0 0.4rem;
+    font-size: 1.35rem;
     font-weight: 400;
   }
   .features p {
     margin: 0;
     color: var(--m-soft);
-    line-height: 1.65;
+    line-height: 1.6;
+  }
+
+  /* blocos em duas colunas: título e texto à esquerda, conteúdo à direita */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  .split h2 {
+    margin-bottom: 1.25rem;
+  }
+  .split .note {
+    margin: 0;
   }
 
   /* funciona com */
-  .works h2 {
-    margin-bottom: 2rem;
-  }
   .chips {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
-    margin: 0 0 1.75rem;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
@@ -518,7 +585,7 @@ const steps = [
   }
   .how img {
     width: 100%;
-    max-width: 32rem;
+    max-width: 24rem;
     justify-self: center;
   }
   .steps {
@@ -529,7 +596,7 @@ const steps = [
   }
   .steps li {
     position: relative;
-    padding: 0.9rem 0 0.9rem 3.25rem;
+    padding: 0.7rem 0 0.7rem 3rem;
     line-height: 1.55;
     border-bottom: 1px solid var(--m-line);
     counter-increment: step;
@@ -538,7 +605,7 @@ const steps = [
     content: counter(step);
     position: absolute;
     left: 0;
-    top: 0.75rem;
+    top: 0.55rem;
     display: grid;
     place-items: center;
     width: 2rem;
@@ -552,7 +619,7 @@ const steps = [
 
   /* downloads */
   .downloads {
-    margin: 0 0 1.25rem;
+    margin: 0;
     padding: 0;
     list-style: none;
     border-top: 1px solid var(--m-line);
@@ -568,14 +635,14 @@ const steps = [
       'file icon';
     align-items: center;
     column-gap: 1rem;
-    padding-block: 1.25rem;
+    padding-block: 0.9rem;
     color: var(--m-ink);
     text-decoration: none;
   }
   .d-label {
     grid-area: label;
     font-family: var(--font-serif);
-    font-size: 1.8rem;
+    font-size: 1.45rem;
     line-height: 1.15;
   }
   .d-file {
@@ -600,7 +667,6 @@ const steps = [
 
   /* despedida */
   .outro {
-    padding-block: clamp(3rem, 7vw, 5rem);
     background: var(--m-paper);
     border-top: 1px solid var(--m-line);
   }
@@ -612,16 +678,20 @@ const steps = [
   }
   .outro img {
     width: 100%;
-    max-width: 30rem;
+    max-width: 22rem;
     justify-self: center;
   }
   .outro h2 {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .outro-grid > div {
+    justify-self: start;
   }
 
   @media (max-width: 820px) {
     .hero-grid,
     .how,
+    .split,
     .outro-grid {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -632,6 +702,9 @@ const steps = [
     .promises {
       grid-template-columns: minmax(0, 1fr);
       gap: 1.5rem;
+    }
+    .promises > div + div {
+      border-left: 0;
     }
   }
 </style>

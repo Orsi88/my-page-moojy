@@ -15,12 +15,12 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #11151f;
-  --surface: #1a2030;
+  --bg: #1c1d1f;
+  --surface: #26272a;
   --text: #ece9e1;
-  --text-muted: #a6abb8;
+  --text-muted: #a7a7aa;
   --accent: #8db4f0;
-  --border: #2b3346;
+  --border: #36373b;
   --focus: #9cc0ff;
 }
 

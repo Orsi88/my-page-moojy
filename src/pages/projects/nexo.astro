@@ -3,6 +3,7 @@
 // Imagens: public/projects/nexo/ (vindas do repositório do Nexo). Textos baseados no README.
 // Nunca linkar a instância privada (RNF-004 / CA-08): só o repositório e a instalação.
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionNav from '../../components/SectionNav.astro';
 import ProjectPeople from '../../components/ProjectPeople.astro';
 import { allProjects, people } from '../../data/site';
 import { repoInfo } from '../../utils/github';
@@ -32,6 +33,15 @@ const flow = [
     step: 'Share',
     text: 'Send results through public or members-only links, with expiry, revoking and masking.',
   },
+];
+
+const hasPeople = Boolean(info && info.people.length > 0);
+const sections = [
+  { id: 'top', label: 'Nexo' },
+  { id: 'flow', label: 'The whole orbit' },
+  { id: 'features', label: 'What’s inside' },
+  { id: 'install', label: 'Run your own' },
+  ...(hasPeople ? [{ id: 'people', label: 'Made by' }] : []),
 ];
 
 const features = [
@@ -65,7 +75,7 @@ const features = [
 <BaseLayout title="Nexo" description={project.description ?? undefined}>
   <div class="nexo">
     <!-- abertura: céu noturno -->
-    <section class="hero">
+    <section class="hero" id="top">
       <div
         class="sky"
         aria-hidden="true"
@@ -84,8 +94,8 @@ const features = [
             Every pipeline, <em>one calm place.</em>
           </h1>
           <p class="lead">
-            Nexo is a panel to discover, configure, run, monitor and share the results of your test
-            automation pipelines, whatever your company, test framework or CI provider.
+            Discover, run, monitor and share your test pipelines from Azure DevOps and GitHub
+            Actions, all in one panel.
           </p>
           <div class="actions">
             <a class="cta" href="#install">
@@ -109,17 +119,8 @@ const features = [
       </div>
     </section>
 
-    <!-- provedores -->
-    <section class="container providers" aria-label="Supported CI providers">
-      <p>Plays well with</p>
-      <ul>
-        <li>Azure DevOps Pipelines</li>
-        <li>GitHub Actions</li>
-      </ul>
-    </section>
-
     <!-- ciclo -->
-    <section class="container block" aria-labelledby="flow-title">
+    <section class="container block screen" id="flow" aria-labelledby="flow-title">
       <p class="eyebrow">The whole orbit</p>
       <h2 id="flow-title">
         From “where is that pipeline?” <em>to “here’s the report.”</em>
@@ -136,7 +137,7 @@ const features = [
     </section>
 
     <!-- recursos -->
-    <section class="container block" aria-labelledby="features-title">
+    <section class="container block screen" id="features" aria-labelledby="features-title">
       <p class="eyebrow">What’s inside</p>
       <h2 id="features-title">
         Quietly <em>thorough.</em>
@@ -155,7 +156,7 @@ const features = [
     </section>
 
     <!-- instalação -->
-    <section class="container block install" id="install" aria-labelledby="install-title">
+    <section class="container block install screen" id="install" aria-labelledby="install-title">
       <div>
         <p class="eyebrow">Run your own</p>
         <h2 id="install-title">
@@ -180,12 +181,14 @@ const features = [
 
     <!-- quem fez -->
     {info && info.people.length > 0 && (
-      <section class="container block" aria-labelledby="people-title">
+      <section class="container block screen" id="people" aria-labelledby="people-title">
         <p class="eyebrow">Made by</p>
         <h2 id="people-title">Built under the stars</h2>
         <ProjectPeople people={info.people} />
       </section>
     )}
+
+    <SectionNav sections={sections} />
   </div>
 </BaseLayout>
 
@@ -200,8 +203,20 @@ const features = [
     --n-glow: #7ea6ff;
     --n-gold: #ffd27a;
     --people-border: var(--n-line);
+    --nav-ink: var(--n-gold);
+    --nav-soft: var(--n-soft);
+    --nav-bg: var(--n-panel);
     color: var(--n-ink);
     background: var(--n-bg);
+  }
+
+  /* barra de rolagem fina, na paleta do Nexo */
+  :global(html:has(.nexo)) {
+    scrollbar-color: #323b85 transparent;
+  }
+  pre {
+    scrollbar-width: thin;
+    scrollbar-color: #262d6a transparent;
   }
 
   .pixel {
@@ -223,28 +238,40 @@ const features = [
     color: var(--n-gold);
   }
   .eyebrow {
-    margin: 0 0 1.25rem;
-    font-size: 0.75rem;
+    margin: 0 0 0.9rem;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--n-soft);
   }
   h2 {
-    margin: 0 0 2.5rem;
-    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    margin: 0 0 1.75rem;
+    font-size: clamp(2rem, 4vw, 3.1rem);
     font-weight: 400;
     line-height: 1.05;
     text-wrap: balance;
   }
   h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.6rem;
+    margin: 0 0 0.4rem;
+    font-size: 1.35rem;
     font-weight: 400;
   }
   .block {
-    padding-block: clamp(4rem, 9vw, 6.5rem);
+    padding-block: clamp(2.75rem, 5.5vw, 4.25rem);
     border-top: 1px solid var(--n-line);
+  }
+  /* cada seção ocupa a tela inteira, com o conteúdo centralizado */
+  .screen {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    padding-block: 4rem;
+  }
+  /* a última seção divide a tela com o rodapé */
+  .nexo > section:last-of-type {
+    min-height: calc(100svh - 6rem);
   }
   .note {
     max-width: 40rem;
@@ -257,7 +284,7 @@ const features = [
     text-underline-offset: 0.2em;
   }
   .block > .note {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     font-size: 0.9rem;
   }
 
@@ -272,7 +299,7 @@ const features = [
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.9rem 1.5rem;
+    padding: 0.75rem 1.3rem;
     font-weight: 500;
     color: var(--n-bg);
     background: var(--n-ink);
@@ -298,7 +325,9 @@ const features = [
   .hero {
     position: relative;
     overflow: hidden;
-    padding-block: clamp(2.5rem, 6vw, 4rem) clamp(5rem, 12vw, 9rem);
+    display: grid;
+    min-height: calc(100svh - 4.75rem);
+    padding-block: clamp(1.5rem, 3.5vw, 2.5rem);
   }
   .sky {
     position: absolute;
@@ -316,7 +345,9 @@ const features = [
   }
   .hero-grid {
     position: relative;
+    align-self: center;
     display: grid;
+    width: min(100% - 2 * var(--space), var(--max-w));
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     align-items: center;
     gap: clamp(2rem, 5vw, 4rem);
@@ -325,8 +356,8 @@ const features = [
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 2.5rem;
-    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
     color: var(--n-soft);
     text-decoration: none;
   }
@@ -335,7 +366,7 @@ const features = [
   }
   h1 {
     margin: 0;
-    font-size: clamp(3rem, 7vw, 5.8rem);
+    font-size: clamp(2.5rem, 5vw, 4.2rem);
     font-weight: 400;
     line-height: 1;
     letter-spacing: -0.015em;
@@ -344,14 +375,14 @@ const features = [
   }
   .lead {
     max-width: 34rem;
-    margin: 1.75rem 0 2.5rem;
-    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
-    line-height: 1.7;
+    margin: 1.25rem 0 1.75rem;
+    font-size: clamp(1rem, 1.25vw, 1.1rem);
+    line-height: 1.6;
     color: var(--n-soft);
   }
   .mascot {
     width: 100%;
-    max-width: 22rem;
+    max-width: 20rem;
     justify-self: center;
     filter: drop-shadow(0 0 40px rgb(126 166 255 / 0.45));
     animation: float 5s ease-in-out infinite;
@@ -362,36 +393,6 @@ const features = [
     }
   }
 
-  /* provedores */
-  .providers {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem 2rem;
-    padding-block: 0 3rem;
-  }
-  .providers p {
-    margin: 0;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--n-soft);
-  }
-  .providers ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .providers li {
-    padding: 0.55rem 1.1rem;
-    background: var(--n-panel);
-    border: 1px solid var(--n-line);
-    border-radius: 999px;
-  }
 
   /* ciclo: uma órbita com cinco paradas */
   .flow {
@@ -415,7 +416,7 @@ const features = [
   }
   .flow li {
     position: relative;
-    padding-top: 2.5rem;
+    padding-top: 2rem;
   }
   .dot {
     position: absolute;
@@ -448,7 +449,7 @@ const features = [
     list-style: none;
   }
   .features li {
-    padding: 1.75rem;
+    padding: 1.4rem;
     background: var(--n-panel);
     border: 1px solid var(--n-line);
     border-radius: calc(var(--radius) + 4px);
@@ -463,19 +464,22 @@ const features = [
   .features p {
     margin: 0;
     color: var(--n-soft);
-    line-height: 1.65;
+    line-height: 1.6;
   }
 
   /* instalação */
+  .install h2 {
+    margin-bottom: 1.25rem;
+  }
   .install {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    align-items: start;
+    align-items: center;
     gap: clamp(2rem, 5vw, 4rem);
   }
   pre {
     margin: 0 0 1.25rem;
-    padding: 1.5rem;
+    padding: 1.25rem;
     overflow-x: auto;
     font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
     font-size: 0.9rem;
