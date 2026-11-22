@@ -141,14 +141,17 @@ export const people: Record<string, { name?: string; linkedin?: string }> = {
 };
 
 // Texto do botão principal da prévia, conforme o tipo de projeto.
+// Projeto com página própria: o botão leva a ela, então convida a conhecer (o download fica lá dentro).
 export const accessLabel = (p: Project) =>
   p.direct && p.appUrl
     ? `Open ${p.name}`
-    : p.release
-      ? 'Download'
-      : p.selfHost
-        ? 'Run your own'
-        : 'View project';
+    : p.customPage
+      ? 'Explore'
+      : p.release
+        ? 'Download'
+        : p.selfHost
+          ? 'Run your own'
+          : 'View project';
 
 // Links públicos do rodapé. `href: null` = pendente (o link não aparece até ser preenchido).
 export type PublicLink = { label: string; href: string | null; icon?: 'linkedin' };
