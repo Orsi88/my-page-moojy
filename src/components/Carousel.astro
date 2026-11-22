@@ -71,6 +71,9 @@ for (const copy of copies) {
 
 <script>
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  // No celular os cards viram uma lista vertical (CSS): sem rolagem lateral, sem volta infinita e
+  // sem os saltos que o toque com inércia causava no iPhone. A lógica de carrossel fica só no desktop.
+  const stackedQuery = matchMedia('(max-width: 700px)');
 
   document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
     const track = root.querySelector<HTMLElement>('.carousel-track');
@@ -85,6 +88,7 @@ for (const copy of copies) {
 
     // rola o trilho até o card ficar no centro
     const center = (i: number, smooth = true) => {
+      if (stackedQuery.matches) return;
       const slide = slides[Math.max(0, Math.min(slides.length - 1, i))];
       track.scrollTo({
         left: slide.offsetLeft - (track.clientWidth - slide.offsetWidth) / 2,
@@ -111,7 +115,7 @@ for (const copy of copies) {
     // quando a rolagem para numa cópia, pula (sem animação) para o mesmo card na lista
     // do meio: visualmente nada muda e sempre há cards dos dois lados
     const wrap = () => {
-      if (!looped || (active >= n && active < 2 * n)) return;
+      if (stackedQuery.matches || !looped || (active >= n && active < 2 * n)) return;
       const target = active < n ? active + n : active - n;
       track.scrollBy({
         left: slides[target].offsetLeft - slides[active].offsetLeft,
@@ -137,7 +141,7 @@ for (const copy of copies) {
 
     slides.forEach((slide, i) => {
       slide.addEventListener('click', (event) => {
-        if (i !== active) {
+        if (!stackedQuery.matches && i !== active) {
           event.preventDefault();
           return center(i);
         }
@@ -154,6 +158,11 @@ for (const copy of copies) {
     center(active, false);
     update();
     new ResizeObserver(() => center(active, false)).observe(track);
+    // girou o aparelho ou mudou a janela de celular para desktop: volta a centralizar
+    stackedQuery.addEventListener("change", () => {
+      center(active, false);
+      update();
+    });
   });
 </script>
 
@@ -250,12 +259,31 @@ for (const copy of copies) {
     stroke-linejoin: round;
   }
 
+  /* celular: lista vertical com todos os cards, sem as cópias da volta infinita */
   @media (max-width: 700px) {
-    .carousel {
-      --card-w: 86vw;
+    .carousel-track {
+      display: grid;
+      /* minmax(0, …): a coluna não cresce até a largura natural das imagens (640px) */
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+      width: min(100% - 2 * var(--space), var(--max-w));
+      margin-inline: auto;
+      padding: 0.5rem 0 1rem;
+      overflow: visible;
+      scroll-snap-type: none;
     }
-    .carousel.sm {
-      --card-w: 72vw;
+    .carousel-slide,
+    .carousel-slide[data-active] {
+      opacity: 1;
+      transform: none;
+    }
+    /* cópias da volta infinita e cards vazios de enchimento não fazem sentido na lista */
+    .carousel-slide[data-clone],
+    .carousel-slide:has(> :global(.blank)) {
+      display: none;
+    }
+    .carousel-slide > :global(*) {
+      cursor: pointer;
     }
     .carousel-arrow {
       display: none;

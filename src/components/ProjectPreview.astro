@@ -181,15 +181,29 @@ const empty = !project.description && !project.repo;
   .actions {
     grid-column: 1 / -1;
   }
+  /* celular: uma coluna, a janela cresce com o conteúdo e rola inteira por dentro */
   @media (max-width: 760px) {
+    .preview {
+      height: fit-content;
+      max-height: calc(100dvh - 2rem);
+    }
     .inner {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto auto auto;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      max-height: calc(100dvh - 2rem);
       overflow-y: auto;
+      overscroll-behavior: contain;
     }
     .main,
     .people {
+      min-height: auto;
       overflow: visible;
+    }
+    /* o título não fica embaixo do botão de fechar */
+    .eyebrow,
+    h2 {
+      padding-right: 3rem;
     }
   }
   .close {
